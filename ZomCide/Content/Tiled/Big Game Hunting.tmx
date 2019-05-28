@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="6" height="6" tilewidth="166" tileheight="166" infinite="0" nextlayerid="3" nextobjectid="6">
+ <tileset firstgid="1" source="BP-tile-2R.tsx"/>
+ <tileset firstgid="10" source="BP-tile-8V.tsx"/>
+ <tileset firstgid="19" source="BP-tile-1V.tsx"/>
+ <tileset firstgid="28" source="BP-tile-9V.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="6" height="6">
+  <properties>
+   <property name="StartTile" value="0,2"/>
+   <property name="TilesHigh" type="int" value="6"/>
+   <property name="TilesWide" type="int" value="6"/>
+  </properties>
+  <data encoding="base64">
+   AwAAYAYAAGAJAABgEgAAwBEAAMAQAADAAgAAYAUAAGAIAABgDwAAwA4AAMANAADAAQAAYAQAAGAHAABgDAAAwAsAAMAKAADAIgAAoB8AAKAcAACgGQAAoBYAAKATAACgIwAAoCAAAKAdAACgGgAAoBcAAKAUAACgJAAAoCEAAKAeAACgGwAAoBgAAKAVAACg
+  </data>
+ </layer>
+</map>

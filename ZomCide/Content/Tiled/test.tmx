@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="6" height="6" tilewidth="166" tileheight="166" infinite="0" nextlayerid="3" nextobjectid="6">
+ <tileset firstgid="1" source="BP-tile-2R.tsx"/>
+ <tileset firstgid="10" source="BP-tile-8V.tsx"/>
+ <tileset firstgid="19" source="BP-tile-1V.tsx"/>
+ <tileset firstgid="28" source="BP-tile-9V.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="6" height="6">
+  <data encoding="base64">
+   AwAAYAYAAGAJAABgEgAAwBEAAMAQAADAAgAAYAUAAGAIAABgDwAAwA4AAMANAADAAQAAYAQAAGAHAABgDAAAwAsAAMAKAADAIgAAoB8AAKAcAACgGQAAoBYAAKATAACgIwAAoCAAAKAdAACgGgAAoBcAAKAUAACgJAAAoCEAAKAeAACgGwAAoBgAAKAVAACg
+  </data>
+ </layer>
+ <objectgroup id="2" name="Object Layer 1">
+  <object id="1" name="StartTile" x="2.66667" y="333.333" width="164" height="162.667"/>
+  <object id="3" name="SpawnZone3" type="ZombieSpawn" x="166.667" y="830.667" width="157.333" height="165.333"/>
+  <object id="4" name="SpawnZone1" type="ZombieSpawn" x="334.667" y="2.66667" width="161.333" height="164"/>
+  <object id="5" name="SpawnZone2" type="ZombieSpawn" x="830.667" y="494.667" width="164" height="168"/>
+ </objectgroup>
+</map>
