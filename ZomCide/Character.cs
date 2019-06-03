@@ -26,10 +26,10 @@ namespace ZomCide
 
         public string CharacterName { get; set; }
         private int DamageTaken { get; set; }
-        private int Experience { get; set; }
-        private bool IsAlive { get; set; }
+        public int Experience { get; set; }
+        public bool IsAlive { get; set; }
         private int SuperLevel { get; set; }
-        private SkillLevel Level { get; set; }
+        public SkillLevel Level { get; set; }
         private string ArmorAlt { get; set; }
         public int numOfMoves { get; set; }
         public int movesLeft { get; set; }
@@ -38,9 +38,10 @@ namespace ZomCide
 
         public Vector2 Position { get; set; }
 
-        Item MainHandSlot;
-        Item OffHandSlot;
-        Item ArmorSlot;
+        public Item MainHandSlot;
+        public Item OffHandSlot;
+        public Item ArmorSlot;
+        public Weapon ActiveWeapon;
 
         List<Item> Backpack;
 
@@ -73,6 +74,8 @@ namespace ZomCide
             PlayerIcon = CharacterName.First();
             numOfMoves = 2;
             movesLeft = numOfMoves;
+            MainHandSlot = new Weapon(1, 4, false, 0, 1, 3);
+            ActiveWeapon = (Weapon)MainHandSlot;
         }
 
         private void LoadCharacter(string CharacterSelection)
@@ -159,6 +162,41 @@ namespace ZomCide
         public void Draw(Zombicide game)
         {
 
+        }
+
+        internal int Attack(Zombicide game, Zombie Z)
+        {
+            int hits = 0;
+            if (CheckCanAttack(game, Z))
+            {
+                
+                var diceList = new List<Dice>();
+                for (int i = 0; i < ActiveWeapon.Dice; i++)
+                {
+                    var d = new Dice(game);
+                    diceList.Add(d);
+                    d.Roll();
+                    if (d.value >= ActiveWeapon.DiceThreshold)
+                    { hits++; }
+                }
+                
+                var mainScreen = (MainGameScreen)game.CurrentScreen;
+                mainScreen.DicePopup();
+                movesLeft--;
+                mainScreen.moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
+                
+            }
+            return hits;
+        }
+
+        private bool CheckCanAttack(Zombicide game, Zombie Z)
+        {
+
+            if (Z.ZombieTile[0] == PlayerTile.row && Math.Abs(Z.ZombieTile[1] - PlayerTile.column) <= ActiveWeapon.MaxRange && Math.Abs(Z.ZombieTile[1] - PlayerTile.column) >= ActiveWeapon.MinRange)
+            { return true; }
+            else if (Z.ZombieTile[1] == PlayerTile.column && Math.Abs(Z.ZombieTile[0] - PlayerTile.row) <= ActiveWeapon.MaxRange && Math.Abs(Z.ZombieTile[0] - PlayerTile.row) >= ActiveWeapon.MinRange)
+            { return true; }
+            else return false;
         }
     }
 }

@@ -19,12 +19,14 @@ namespace ZomCide
         List<Tile> visitedTiles;
         List<List<Tile>> solutions;
         bool pFound;
+        Zombicide Game;
 
-        public Zombie(int row, int column, Tile loc)
+        public Zombie(int row, int column, Tile loc, Zombicide game)
         {
             ZombieTile[0] = row;
             ZombieTile[1] = column;
             locationTile = loc;
+            Game = game;
         }
 
         public void move(List<Tile> tileData, Character active)
@@ -35,8 +37,16 @@ namespace ZomCide
             pFound = false;
             FindNextTile(tileData, active, ZombieTile[0], ZombieTile[1], ZombieTile[0], ZombieTile[1]);
             solutions.Sort((a, b) => a.Count.CompareTo(b.Count));
-            ZombieTile[0] = solutions.First()[1].row;
-            ZombieTile[1] = solutions.First()[1].column;
+            if (solutions.First().Count > 1)
+            {
+                ZombieTile[0] = solutions.First()[1].row;
+                ZombieTile[1] = solutions.First()[1].column;
+            }
+            else
+            {
+                ZombieTile[0] = solutions.First()[0].row;
+                ZombieTile[1] = solutions.First()[0].column;
+            }
         }
 
 
@@ -61,8 +71,8 @@ namespace ZomCide
               //pFound = true;
                 solutionPath.Add(nextTile);
                 solutions.Add(solutionPath);
-                solutionPath.RemoveAt(solutionPath.Count - 1);
                 solutionPath = new List<Tile>(solutionPath);
+                solutionPath.RemoveAt(solutionPath.Count - 1);
                 return;
             }
             solutionPath.Add(nextTile); //temporarily adds tile being looked at until a dead end is found
@@ -81,6 +91,18 @@ namespace ZomCide
             } //Removes all tiles in branch that hit dead end
 
 
+        }
+
+        public void attackPlayer()
+        {
+            GeonBit.UI.Utils.MessageBox.ShowMsgBox("lol", "Gotcha Bitch", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("ok", () => {
+                                    return true;
+                                })
+            });
+            Game.ActiveCharacter.ApplyDamage(1);
+            var mainScreen = (MainGameScreen)Game.CurrentScreen;
+            mainScreen.life.Text = "Life: " + (Game.ActiveCharacter.DeathThreshold - Game.ActiveCharacter.GetDamageTaken()).ToString();
         }
     }
 }

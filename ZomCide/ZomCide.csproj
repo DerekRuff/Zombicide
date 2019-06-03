@@ -58,6 +58,7 @@
     <Compile Include="Dice.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="Skill.cs" />
+    <Compile Include="Weapon.cs" />
     <Compile Include="Zombicide.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

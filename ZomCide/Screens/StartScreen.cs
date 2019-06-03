@@ -17,6 +17,8 @@ namespace ZomCide
         private Vector2 titlePosition;
         private Rectangle newGameButtonRectangle;
 
+        double textSize;
+
         public StartScreen() {  }
         public StartScreen(Zombicide game)
         {
@@ -30,6 +32,7 @@ namespace ZomCide
             textMiddlePoint = titleFont.MeasureString("Zombicide") / 2;
             titlePosition = new Vector2(game.Window.ClientBounds.Width / 2, game.Window.ClientBounds.Height / 2);
             newGameButtonRectangle = new Rectangle((int)((game.GraphicsDevice.Viewport.Width / 2) - (Zombicide.NGButtonWidth / 2)), (int)(game.GraphicsDevice.Viewport.Height - (game.GraphicsDevice.Viewport.Height / 5)), (int)Zombicide.NGButtonWidth, (int)Zombicide.NGButtonHeight);
+            textSize = 2;
         }
 
         public override void Update(Zombicide game)
@@ -39,11 +42,13 @@ namespace ZomCide
             {
                 game.SetNextScreen(nameof(CharacterSelectScreen));
             }
+            textSize += .01;
+            
         }
 
         public override void Draw(Zombicide game)
         {
-            game.SpriteBatch.DrawString(titleFont, "Zombicide", titlePosition, Color.Black, 0, textMiddlePoint, 2f, SpriteEffects.None, 0.5f);
+            game.SpriteBatch.DrawString(titleFont, "Zombicide", titlePosition, Color.Black, 0, textMiddlePoint, (float)(Math.Sin(textSize)*.3)+2, SpriteEffects.None, 0.5f);
             game.SpriteBatch.Draw(newGameButton, newGameButtonRectangle, Color.White);
         }
     }

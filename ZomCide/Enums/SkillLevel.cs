@@ -1,6 +1,6 @@
 ﻿namespace ZomCide
 {
-    enum SkillLevel
+    public enum SkillLevel
     {
         Blue,
         Yellow,

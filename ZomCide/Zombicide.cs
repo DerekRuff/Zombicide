@@ -65,7 +65,7 @@ namespace ZomCide
             graphics.ApplyChanges();
             IsMouseVisible = false;
             UserInterface.Initialize(Content, BuiltinThemes.hd);
-
+            drawList = new List<IDrawableGameObject>();
             base.Initialize();
 
         }
