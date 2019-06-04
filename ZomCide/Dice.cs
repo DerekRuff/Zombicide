@@ -38,7 +38,7 @@ namespace ZomCide
 
         public void Draw(Zombicide game)
         {
-            
+            throw new NotImplementedException();
         }
 
         public void Roll()

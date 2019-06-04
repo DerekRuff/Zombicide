@@ -81,6 +81,7 @@ namespace ZomCide
             mouseCursor = Content.Load<Texture2D>("GeonBit.UI/themes/hd/textures/cursor_default");
             defaultBackground = Content.Load<Texture2D>(@"Zombicide Background");
             Zombie.Icon = Content.Load<Texture2D>(@"ZombieIcon");
+            Zombie.Game = this;
 
             // TODO: use this.Content to load your game content here
         }

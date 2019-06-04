@@ -11,6 +11,8 @@ namespace ZomCide
     class Zombie
     {
         public static Texture2D Icon { get; set; }
+        public static Zombicide Game { get; set; }
+        public static List<int[]> SpawnTiles { get; set; }
         public int ZombieX { get; set; }
         public int ZombieY { get; set; }
         public int[] ZombieTile { get; set; } = new int[2];
@@ -19,7 +21,7 @@ namespace ZomCide
         List<Tile> visitedTiles;
         List<List<Tile>> solutions;
         bool pFound;
-        Zombicide Game;
+        
 
         public Zombie(int row, int column, Tile loc, Zombicide game)
         {

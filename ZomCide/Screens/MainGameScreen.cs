@@ -17,13 +17,13 @@ namespace ZomCide
     {
         Zombicide game;
         public Random RNG;
-        enum MoveState { PlayerTurn, ZombieTurn }
         MoveState whosTurn;
         private Texture2D resetMapButton;
         private Texture2D Highlight;
         private Texture2D closedDoor;
         private Texture2D openDoor;
         private Texture2D zombieIcon;
+        private SpriteFont Impact;
 
         Texture2D player;
 
@@ -51,12 +51,14 @@ namespace ZomCide
         public Paragraph moves { get; set; }
         public Paragraph level { get; set; }
         public Paragraph experience { get; set; }
+        public Button forfeitMove { get; set; }
 
         public MainGameScreen(Zombicide game)
         {
             LoadMainGame(game);
             this.game = game;
             RNG = new Random();
+            Impact = game.Content.Load<SpriteFont>("Impact");
         }
 
         public override void Update(Zombicide game)
@@ -102,6 +104,13 @@ namespace ZomCide
 
             if (whosTurn == MoveState.ZombieTurn)
             {
+                foreach (var ST in Zombie.SpawnTiles)
+                {
+                    if (RNG.Next(0, 2) == 1)
+                    {
+                        AddZombie(ST[0], ST[1]);
+                    }
+                }
                 foreach (Zombie Z in zombieList)
                 {
                     if (game.ActiveCharacter.PlayerTile.row == Z.ZombieTile[0] && game.ActiveCharacter.PlayerTile.column == Z.ZombieTile[1])
@@ -140,6 +149,7 @@ namespace ZomCide
             foreach (Zombie Z in zombieList)
             {
                 game.SpriteBatch.Draw(zombieIcon, new Rectangle(mapX + Z.ZombieTile[1] * tileWidth, mapY + Z.ZombieTile[0] * tileHeight, 40, 40), Color.White);
+                game.SpriteBatch.DrawString(Impact, zombieList.Where(x=>x.ZombieTile[0]==Z.ZombieTile[0]&& x.ZombieTile[1] == Z.ZombieTile[1]).Count().ToString(), new Vector2((mapX + Z.ZombieTile[1] * tileWidth)+5, (mapY + Z.ZombieTile[0] * tileHeight)+5), Color.Black);
             }
 
 
@@ -182,6 +192,9 @@ namespace ZomCide
             game.ActiveCharacter.PlayerX = mapX + (Convert.ToInt32(startTile[1]) * tileWidth) + (tileWidth / 2);
             game.ActiveCharacter.PlayerY = mapY + (Convert.ToInt32(startTile[0]) * tileHeight) + (tileHeight / 2);
 
+            //Load Zombie Spawns
+            Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x=>x.Value.Split(',').Select(y=>Convert.ToInt32(y)).ToArray()).ToList();
+
             //Initialize UI for Main game screen
             PanelTabs tabs = new PanelTabs();
             Panel movePanel = new Panel(new Vector2(400, 800), PanelSkin.Simple, Anchor.CenterRight);
@@ -193,14 +206,12 @@ namespace ZomCide
             moves = new Paragraph("Moves Left: " + (game.ActiveCharacter.movesLeft).ToString());
             level = new Paragraph("Level: " + (game.ActiveCharacter.Level).ToString());
             experience = new Paragraph("Experience: " + (game.ActiveCharacter.Experience).ToString());
-
-            var test = new Button("test Zombie");
-            test.OnClick = (Entity btn) =>
+            forfeitMove = new Button("Forfeit Move",anchor:Anchor.BottomCenter);
+            forfeitMove.OnClick = (Entity btn) =>
             {
-                
-                zombieList.Add(new Zombie(5, 1, tileData.Find(x => x.row == 5 && x.column == 1), game));
+                game.ActiveCharacter.movesLeft--;
             };
-
+            
 
             tab1.button.Padding = new Vector2(0, 0);
             tab1.button.Size = new Vector2(100, 50);
@@ -212,7 +223,7 @@ namespace ZomCide
             tab1.panel.AddChild(moves);
             tab1.panel.AddChild(level);
             tab1.panel.AddChild(experience);
-            tab1.panel.AddChild(test);
+            tab1.panel.AddChild(forfeitMove);
             tab1.button.ButtonParagraph.Scale = .9f;
 
             TabData tab2 = tabs.AddTab("Backpack");
@@ -230,14 +241,16 @@ namespace ZomCide
             whosTurn = MoveState.PlayerTurn;
             applyMoveTiles(game);
 
-            //Add Zombies
+            //Initialize lists
             zombieList = new List<Zombie>();
-            int testRow = 5;
-            int testColumn = 1;
-            Tile Testloc = tileData.Find(x => x.row == testRow && x.column == testColumn);
-            zombieList.Add(new Zombie(testRow, testColumn, Testloc, game));
-
             DiceList = new List<Dice>();
+        }
+
+        void AddZombie(int row, int column)
+        {
+            
+            Tile Testloc = tileData.Find(x => x.row == row && x.column == column);
+            zombieList.Add(new Zombie(row, column, Testloc, game));
         }
 
 
@@ -300,7 +313,6 @@ namespace ZomCide
             }
             applyMoveTiles(game);
             game.ActiveCharacter.movesLeft--;
-            moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
             if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
         }
 

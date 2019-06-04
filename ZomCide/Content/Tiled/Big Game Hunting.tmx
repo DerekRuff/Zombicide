@@ -6,9 +6,12 @@
  <tileset firstgid="28" source="BP-tile-9V.tsx"/>
  <layer id="1" name="Tile Layer 1" width="6" height="6">
   <properties>
-   <property name="StartTile" value="0,2"/>
+   <property name="StartTile" value="2,0"/>
    <property name="TilesHigh" type="int" value="6"/>
    <property name="TilesWide" type="int" value="6"/>
+   <property name="SpawnZone1" value="0,2"/>
+   <property name="SpawnZone2" value="3,5"/>
+   <property name="SpawnZone3" value="5,1"/>
   </properties>
   <data encoding="base64">
    AwAAYAYAAGAJAABgEgAAwBEAAMAQAADAAgAAYAUAAGAIAABgDwAAwA4AAMANAADAAQAAYAQAAGAHAABgDAAAwAsAAMAKAADAIgAAoB8AAKAcAACgGQAAoBYAAKATAACgIwAAoCAAAKAdAACgGgAAoBcAAKAUAACgJAAAoCEAAKAeAACgGwAAoBgAAKAVAACg
