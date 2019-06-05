@@ -74,7 +74,8 @@ namespace ZomCide
             PlayerIcon = CharacterName.First();
             numOfMoves = 2;
             movesLeft = numOfMoves;
-            MainHandSlot = new Weapon(1, 4, false, 0, 1, 3);
+            MainHandSlot = new Weapon("Sword of Summoning",1, 4, false, 0, 1, 3,true);
+            OffHandSlot = new Weapon("Dagger of Danger", 1, 5, false, 0, 4, 6);
             ActiveWeapon = (Weapon)MainHandSlot;
         }
 
@@ -93,6 +94,12 @@ namespace ZomCide
         {
             DamageTaken += damage;
             if (DamageTaken >= DeathThreshold) { IsAlive = false; }
+        }
+
+        public void PickupObjective()
+        {
+            movesLeft--;
+            ApplyExperience(5);
         }
 
         public void ApplyExperience(int XP = 1)
@@ -156,7 +163,7 @@ namespace ZomCide
 
         public void Update(Zombicide game)
         {
-
+            ActiveWeapon = (((Weapon)OffHandSlot).Active) ? (Weapon)OffHandSlot : (Weapon)MainHandSlot;
         }
 
         public void Draw(Zombicide game)

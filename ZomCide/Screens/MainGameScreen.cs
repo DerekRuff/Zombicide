@@ -16,7 +16,7 @@ namespace ZomCide
     class MainGameScreen : GameScreen
     {
         Zombicide game;
-        public Random RNG;
+        public static Random RNG;
         MoveState whosTurn;
         private Texture2D resetMapButton;
         private Texture2D Highlight;
@@ -31,18 +31,19 @@ namespace ZomCide
         Texture2D mapPic;
         int mapWidth = 800;
         int mapHeight = 800;
-        int mapX;
-        int mapY;
-        int tileWidth;
-        int tileHeight;
-        int tilesHigh;
-        int tilesWide;
+        public static int mapX;
+        public static int mapY;
+        public static int tileWidth;
+        public static int tileHeight;
+        public static int tilesHigh;
+        public static int tilesWide;
 
         List<Tile> tileData;
         List<Tile> litTiles;
         List<Tile> doorTiles;
         List<Zombie> zombieList;
         List<Dice> DiceList;
+        List<int[]> ObjectiveTiles;
 
         int resetMapX;
         int resetMapY;
@@ -52,12 +53,13 @@ namespace ZomCide
         public Paragraph level { get; set; }
         public Paragraph experience { get; set; }
         public Button forfeitMove { get; set; }
+        public Paragraph MainHand { get; set; }
+        public Paragraph OffHand { get; set; }
 
         public MainGameScreen(Zombicide game)
         {
             LoadMainGame(game);
             this.game = game;
-            RNG = new Random();
             Impact = game.Content.Load<SpriteFont>("Impact");
         }
 
@@ -65,11 +67,20 @@ namespace ZomCide
         {
             int mapSpeed = 10;
 
+            game.ActiveCharacter.Update(game);
+
             //Update UI components
             life.Text = ("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
             moves.Text = ("Moves Left: " + (game.ActiveCharacter.movesLeft).ToString());
             level.Text = ("Level: " + (game.ActiveCharacter.Level).ToString());
             experience.Text = ("Experience: " + (game.ActiveCharacter.Experience).ToString());
+            var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
+            MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: " + mainWeap.Dice + "\nHit Value: " + mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange + "-" + mainWeap.MaxRange;
+            MainHand.Text = ("Main Hand: " + mainWeap.Name);
+            MainHand.FillColor = (mainWeap.Active) ? Color.Red : Color.White;
+            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
+            OffHand.Text = ("Off Hand: " + OffHandName);
+            OffHand.FillColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
 
 
             if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
@@ -128,6 +139,10 @@ namespace ZomCide
         public override void Draw(Zombicide game)
         {
             game.SpriteBatch.Draw(mapPic, new Rectangle(mapX, mapY, mapWidth, mapHeight), Color.White);
+            foreach (Objective O in Objective.ObjectiveList)
+            {
+                O.Draw(game);
+            }
             game.SpriteBatch.Draw(player, new Rectangle(game.ActiveCharacter.PlayerX - 15, game.ActiveCharacter.PlayerY - 15, 40, 40), Color.White);
             game.SpriteBatch.Draw(resetMapButton, new Rectangle(resetMapX, resetMapY, 54, 54), Color.White);
 
@@ -149,7 +164,7 @@ namespace ZomCide
             foreach (Zombie Z in zombieList)
             {
                 game.SpriteBatch.Draw(zombieIcon, new Rectangle(mapX + Z.ZombieTile[1] * tileWidth, mapY + Z.ZombieTile[0] * tileHeight, 40, 40), Color.White);
-                game.SpriteBatch.DrawString(Impact, zombieList.Where(x=>x.ZombieTile[0]==Z.ZombieTile[0]&& x.ZombieTile[1] == Z.ZombieTile[1]).Count().ToString(), new Vector2((mapX + Z.ZombieTile[1] * tileWidth)+5, (mapY + Z.ZombieTile[0] * tileHeight)+5), Color.Black);
+                game.SpriteBatch.DrawString(Impact, zombieList.Where(x => x.ZombieTile[0] == Z.ZombieTile[0] && x.ZombieTile[1] == Z.ZombieTile[1]).Count().ToString(), new Vector2((mapX + Z.ZombieTile[1] * tileWidth) + 5, (mapY + Z.ZombieTile[0] * tileHeight) + 5), Color.Black);
             }
 
 
@@ -179,6 +194,9 @@ namespace ZomCide
                 { doorTiles.Add(T); }
             }
 
+            //Initialize random number generator
+            RNG = new Random();
+
             //Place reset map Button
             resetMapButton = game.Content.Load<Texture2D>(@"CenterMapButton");
             resetMapX = 1200 - 54;
@@ -193,26 +211,61 @@ namespace ZomCide
             game.ActiveCharacter.PlayerY = mapY + (Convert.ToInt32(startTile[0]) * tileHeight) + (tileHeight / 2);
 
             //Load Zombie Spawns
-            Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x=>x.Value.Split(',').Select(y=>Convert.ToInt32(y)).ToArray()).ToList();
+            Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x => x.Value.Split(',').Select(y => Convert.ToInt32(y)).ToArray()).ToList();
+
+            //Load and initialize objectives
+            Objective.ObjectiveTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("Objective")).Select(x => x.Value.Split(',').Select(y => Convert.ToInt32(y)).ToArray()).ToList();
+            Objective.Initialize(game);
 
             //Initialize UI for Main game screen
             PanelTabs tabs = new PanelTabs();
-            Panel movePanel = new Panel(new Vector2(400, 800), PanelSkin.Simple, Anchor.CenterRight);
+            PanelTabs RightTabs = new PanelTabs();
+            Panel movePanel = new Panel(new Vector2(400, 750), PanelSkin.Default, Anchor.TopRight, new Vector2(0, 50));
             Panel playerPanel = new Panel(new Vector2(400, 750), PanelSkin.Default, Anchor.TopLeft, new Vector2(0, 50));
             playerPanel.AddChild(tabs);
+            movePanel.AddChild(RightTabs);
+
+            TabData EquipmentTab = RightTabs.AddTab("Equipment");
+            MainHand = new Paragraph("Main Hand: " + game.ActiveCharacter.MainHandSlot.Name);
+            var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
+            MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: " + mainWeap.Dice + "\nHit Value: " + mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange + "-" + mainWeap.MaxRange;
+            MainHand.OnClick = (Entity pgh) =>
+            {
+                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = true;
+                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = false;
+            };
+            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
+            OffHand = new Paragraph("Off Hand: " + OffHandName);
+            var offWeap = (Weapon)game.ActiveCharacter.OffHandSlot;
+            OffHand.ToolTipText = "Damage: " + offWeap.Damage + "\nDice: " + offWeap.Dice + "\nHit Value: " + offWeap.DiceThreshold + "\nRange: " + offWeap.MinRange + "-" + offWeap.MaxRange;
+            OffHand.OnClick = (Entity pgh) =>
+            {
+                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = true;
+                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = false;
+            };
+            EquipmentTab.button.Padding = new Vector2(0, 0);
+            EquipmentTab.button.Size = new Vector2(100, 50);
+            EquipmentTab.button.Offset = new Vector2(0, -50);
+            EquipmentTab.panel.Offset = new Vector2(0, -50);
+            EquipmentTab.button.ButtonParagraph.Scale = .9f;
+            EquipmentTab.panel.AddChild(MainHand);
+            EquipmentTab.panel.AddChild(OffHand);
+
+            TabData SkillTab = RightTabs.AddTab("Skills");
+            SkillTab.button.Padding = new Vector2(0, 0);
+            SkillTab.button.Size = new Vector2(100, 50);
+            SkillTab.button.ButtonParagraph.Scale = .9f;
 
             TabData tab1 = tabs.AddTab("Player");
             life = new Paragraph("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
             moves = new Paragraph("Moves Left: " + (game.ActiveCharacter.movesLeft).ToString());
             level = new Paragraph("Level: " + (game.ActiveCharacter.Level).ToString());
             experience = new Paragraph("Experience: " + (game.ActiveCharacter.Experience).ToString());
-            forfeitMove = new Button("Forfeit Move",anchor:Anchor.BottomCenter);
+            forfeitMove = new Button("Forfeit Move", anchor: Anchor.BottomCenter);
             forfeitMove.OnClick = (Entity btn) =>
             {
                 game.ActiveCharacter.movesLeft--;
             };
-            
-
             tab1.button.Padding = new Vector2(0, 0);
             tab1.button.Size = new Vector2(100, 50);
             tab1.button.Offset = new Vector2(0, -50);
@@ -248,7 +301,7 @@ namespace ZomCide
 
         void AddZombie(int row, int column)
         {
-            
+
             Tile Testloc = tileData.Find(x => x.row == row && x.column == column);
             zombieList.Add(new Zombie(row, column, Testloc, game));
         }
@@ -363,6 +416,7 @@ namespace ZomCide
                     mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
                 }
 
+
                 if (whosTurn == MoveState.PlayerTurn)
                 {
 
@@ -403,6 +457,13 @@ namespace ZomCide
                             moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
                             if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
                             break;
+                        }
+                    }
+                    foreach (Objective O in Objective.ObjectiveList)
+                    {
+                        if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row==O.Tile[0]&&game.ActiveCharacter.PlayerTile.column == O.Tile[1])
+                        {
+                            O.FlipCard(game);
                         }
                     }
 

@@ -47,7 +47,7 @@ namespace ZomCide
             gameScreen.addDice(this);
             
             rolling = true;
-            value = gameScreen.RNG.Next(1, 7);
+            value = MainGameScreen.RNG.Next(1, 7);
             Texture = Game.Content.Load<Texture2D>(@"Dice/die_face_"+value.ToString()+"_T");
         }
 
