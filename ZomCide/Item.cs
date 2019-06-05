@@ -8,6 +8,7 @@ namespace ZomCide
 {
     public class Item
     {
+        public string Name { get; protected set; }
         /// <summary>
         /// Indicates that this item is a consumable that should be removed from the player
         /// after use.

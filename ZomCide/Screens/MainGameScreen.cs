@@ -52,6 +52,8 @@ namespace ZomCide
         public Paragraph level { get; set; }
         public Paragraph experience { get; set; }
         public Button forfeitMove { get; set; }
+        public Paragraph MainHand { get; set; }
+        public Paragraph OffHand { get; set; }
 
         public MainGameScreen(Zombicide game)
         {
@@ -65,11 +67,20 @@ namespace ZomCide
         {
             int mapSpeed = 10;
 
+            game.ActiveCharacter.Update(game);
+
             //Update UI components
             life.Text = ("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
             moves.Text = ("Moves Left: " + (game.ActiveCharacter.movesLeft).ToString());
             level.Text = ("Level: " + (game.ActiveCharacter.Level).ToString());
             experience.Text = ("Experience: " + (game.ActiveCharacter.Experience).ToString());
+            var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
+            MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: " + mainWeap.Dice + "\nHit Value: " + mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange + "-" + mainWeap.MaxRange;
+            MainHand.Text=("Main Hand: " + mainWeap.Name);
+            MainHand.FillColor = (mainWeap.Active) ? Color.Red : Color.White;
+            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
+            OffHand.Text =("Off Hand: " + OffHandName);
+            OffHand.FillColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
 
 
             if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
@@ -197,9 +208,42 @@ namespace ZomCide
 
             //Initialize UI for Main game screen
             PanelTabs tabs = new PanelTabs();
-            Panel movePanel = new Panel(new Vector2(400, 800), PanelSkin.Simple, Anchor.CenterRight);
+            PanelTabs RightTabs = new PanelTabs();
+            Panel movePanel = new Panel(new Vector2(400, 750), PanelSkin.Default, Anchor.TopRight, new Vector2(0, 50));
             Panel playerPanel = new Panel(new Vector2(400, 750), PanelSkin.Default, Anchor.TopLeft, new Vector2(0, 50));
             playerPanel.AddChild(tabs);
+            movePanel.AddChild(RightTabs);
+            
+            TabData EquipmentTab = RightTabs.AddTab("Equipment");
+            MainHand = new Paragraph("Main Hand: "+ game.ActiveCharacter.MainHandSlot.Name);
+            var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
+            MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: "+mainWeap.Dice +"\nHit Value: "+mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange+"-"+mainWeap.MaxRange;
+            MainHand.OnClick = (Entity pgh) =>
+            {
+                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = true;
+                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = false;
+            };
+            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
+            OffHand = new Paragraph("Off Hand: " + OffHandName);
+            var offWeap = (Weapon)game.ActiveCharacter.OffHandSlot;
+            OffHand.ToolTipText = "Damage: " + offWeap.Damage + "\nDice: " + offWeap.Dice + "\nHit Value: " + offWeap.DiceThreshold + "\nRange: " + offWeap.MinRange + "-" + offWeap.MaxRange;
+            OffHand.OnClick = (Entity pgh) =>
+            {
+                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = true;
+                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = false;
+            };
+            EquipmentTab.button.Padding = new Vector2(0, 0);
+            EquipmentTab.button.Size = new Vector2(100, 50);
+            EquipmentTab.button.Offset = new Vector2(0, -50);
+            EquipmentTab.panel.Offset = new Vector2(0, -50);
+            EquipmentTab.button.ButtonParagraph.Scale = .9f;
+            EquipmentTab.panel.AddChild(MainHand);
+            EquipmentTab.panel.AddChild(OffHand);
+
+            TabData SkillTab = RightTabs.AddTab("Skills");
+            SkillTab.button.Padding = new Vector2(0, 0);
+            SkillTab.button.Size = new Vector2(100, 50);
+            SkillTab.button.ButtonParagraph.Scale = .9f;
 
             TabData tab1 = tabs.AddTab("Player");
             life = new Paragraph("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
@@ -211,8 +255,6 @@ namespace ZomCide
             {
                 game.ActiveCharacter.movesLeft--;
             };
-            
-
             tab1.button.Padding = new Vector2(0, 0);
             tab1.button.Size = new Vector2(100, 50);
             tab1.button.Offset = new Vector2(0, -50);
