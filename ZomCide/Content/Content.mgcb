@@ -46,6 +46,9 @@
 /processorParam:TextureFormat=Color
 /build:ClosedDoor.png
 
+#begin Data/Zombicide Characters.xml
+/copy:Data/Zombicide Characters.xml
+
 #begin Dice/die_face_1_T.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -134,7 +137,7 @@
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
-/processorParam:TextureFormat=Compressed
+/processorParam:TextureFormat=Color
 /build:GeonBit.UI/themes/editor/fonts/Bold.spritefont
 
 #begin GeonBit.UI/themes/editor/fonts/Italic.spritefont
@@ -4985,8 +4988,8 @@
 /copy:Tiled/Big Game Hunting.tmx
 
 #begin Tiled/Big Game Hunting1.tmx
-/importer:
-/processor:
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
 /build:Tiled/Big Game Hunting1.tmx
 
 #begin Tiled/BP-tile-1V.tsx
@@ -5017,8 +5020,8 @@
 /copy:Tiled/BP-tile-9V.tsx
 
 #begin Tiled/test.tmx
-/importer:
-/processor:
+/importer:TiledMapImporter
+/processor:TiledMapProcessor
 /build:Tiled/test.tmx
 
 #begin Tiled/Zombicide Tiles/BP-tile-1V.jpg
@@ -5143,6 +5146,8 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Zombicide Background.jpg
+
+
 
 #begin Zombicide Font.spritefont
 /importer:FontDescriptionImporter
