@@ -96,6 +96,12 @@ namespace ZomCide
             if (DamageTaken >= DeathThreshold) { IsAlive = false; }
         }
 
+        public void PickupObjective()
+        {
+            movesLeft--;
+            ApplyExperience(5);
+        }
+
         public void ApplyExperience(int XP = 1)
         {
             Experience += XP;

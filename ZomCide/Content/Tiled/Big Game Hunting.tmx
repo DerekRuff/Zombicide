@@ -12,6 +12,13 @@
    <property name="SpawnZone1" value="0,2"/>
    <property name="SpawnZone2" value="3,5"/>
    <property name="SpawnZone3" value="5,1"/>
+   <property name="Objective1" value="0,0"/>
+   <property name="Objective2" value="0,5"/>
+   <property name="Objective3" value="2,1"/>
+   <property name="Objective4" value="2,3"/>
+   <property name="Objective5" value="4,2"/>
+   <property name="Objective6" value="4,3"/>
+   <property name="Objective7" value="5,0"/>
   </properties>
   <data encoding="base64">
    AwAAYAYAAGAJAABgEgAAwBEAAMAQAADAAgAAYAUAAGAIAABgDwAAwA4AAMANAADAAQAAYAQAAGAHAABgDAAAwAsAAMAKAADAIgAAoB8AAKAcAACgGQAAoBYAAKATAACgIwAAoCAAAKAdAACgGgAAoBcAAKAUAACgJAAAoCEAAKAeAACgGwAAoBgAAKAVAACg

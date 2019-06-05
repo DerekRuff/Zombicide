@@ -49,6 +49,7 @@
     <Compile Include="Enums\SkillLevel.cs" />
     <Compile Include="Enums\VaultType.cs" />
     <Compile Include="IDrawableGameObject.cs" />
+    <Compile Include="Objective.cs" />
     <Compile Include="Screens\CharacterSelectScreen.cs" />
     <Compile Include="Screens\GameScreen.cs" />
     <Compile Include="Screens\MainGameScreen.cs" />
