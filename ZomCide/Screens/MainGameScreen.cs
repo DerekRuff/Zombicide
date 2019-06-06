@@ -82,6 +82,12 @@ namespace ZomCide
             OffHand.Text = ("Off Hand: " + OffHandName);
             OffHand.FillColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
 
+            //Check endgame conditions
+            if (game.ActiveCharacter.IsAlive == false)
+            {
+                endGamePopup(false);
+            }
+
 
             if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
                 game.MouseState.LeftButton == ButtonState.Released)
@@ -398,6 +404,20 @@ namespace ZomCide
             UserInterface.Active.AddEntity(dicePanel);
         }
 
+        public void endGamePopup(bool win)
+        {
+            Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
+            string result = (win) ? "Win!" : "Lose";
+            endPanel.AddChild(new Header("You " + result,Anchor.TopCenter));
+            var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+            okButton.OnClick = (Entity btn) =>
+            {
+                game.reset(this);
+            };
+            endPanel.AddChild(okButton);
+            UserInterface.Active.AddEntity(endPanel);
+        }
+
         void MouseClicked(Zombicide game, int LR)
         {
             int x = game.MouseState.X;
@@ -475,6 +495,7 @@ namespace ZomCide
 
             if (LR == 2) //Right Click
             {
+                
                 foreach (Tile T in tileData)
                 {
                     Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
