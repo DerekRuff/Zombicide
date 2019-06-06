@@ -45,10 +45,10 @@ namespace ZomCide
 
         List<Item> Backpack;
 
-        Skill BlueSkill;
-        Skill YellowSkill;
-        List<Skill> OrangeSkills;
-        List<Skill> RedSkills;
+        public Skill BlueSkill;
+        public Skill YellowSkill;
+        public List<Skill> OrangeSkills;
+        public List<Skill> RedSkills;
 
 
         public Character(string CharacterSelection, string bs, string ys, string os1, string os2, string rs1, string rs2, string rs3, string Aalt)
