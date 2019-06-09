@@ -156,5 +156,13 @@ namespace ZomCide
             }
         }
 
+        public void reset(GameScreen screen)
+        {
+            SetNextScreen("StartScreen");
+            screen = null;
+            UserInterface.Active.Clear();
+
+        }
+
     }
 }

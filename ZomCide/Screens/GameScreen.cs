@@ -11,6 +11,7 @@ namespace ZomCide
 {
     public class GameScreen : IDrawableGameObject
     {
+        
         public Texture2D Texture { get; private set; }
         public Vector2 Position { get; private set; }
 

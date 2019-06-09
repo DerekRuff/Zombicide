@@ -43,11 +43,10 @@ namespace ZomCide
         List<Tile> doorTiles;
         List<Zombie> zombieList;
         List<Dice> DiceList;
-        List<int[]> ObjectiveTiles;
 
         int resetMapX;
         int resetMapY;
-
+        
         public Paragraph life { get; set; }
         public Paragraph moves { get; set; }
         public Paragraph level { get; set; }
@@ -55,6 +54,15 @@ namespace ZomCide
         public Button forfeitMove { get; set; }
         public Paragraph MainHand { get; set; }
         public Paragraph OffHand { get; set; }
+        public Paragraph BlueSkill { get; set; }
+        public Paragraph YellowSkill { get; set; }
+        public Paragraph OrangeSkill1 { get; set; }
+        public Paragraph OrangeSkill2 { get; set; }
+        public Paragraph RedSkill1 { get; set; }
+        public Paragraph RedSkill2 { get; set; }
+        public Paragraph RedSkill3 { get; set; }
+
+        public bool EndGameFlag { get; set; }
 
         public MainGameScreen(Zombicide game)
         {
@@ -81,6 +89,19 @@ namespace ZomCide
             var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
             OffHand.Text = ("Off Hand: " + OffHandName);
             OffHand.FillColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
+
+            //Check endgame conditions
+            if (EndGameFlag == false)
+            {
+                if (game.ActiveCharacter.IsAlive == false)
+                {
+                    endGamePopup(false);
+                }
+                else if (Objective.ObjectiveList.Exists(x => x.flipped == true && x.UndersideColor == "blue"))
+                {
+                    endGamePopup(true);
+                }
+            }
 
 
             if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
@@ -252,9 +273,26 @@ namespace ZomCide
             EquipmentTab.panel.AddChild(OffHand);
 
             TabData SkillTab = RightTabs.AddTab("Skills");
+            BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, Color.DeepSkyBlue);
+            YellowSkill = new Paragraph(game.ActiveCharacter.YellowSkill.SkillName, Anchor.Auto, Color.Yellow);
+            OrangeSkill1 = new Paragraph(game.ActiveCharacter.OrangeSkills.First().SkillName, Anchor.Auto, Color.Orange);
+            OrangeSkill2 = new Paragraph(game.ActiveCharacter.OrangeSkills.Last().SkillName, Anchor.Auto, Color.Orange);
+            RedSkill1 = new Paragraph(game.ActiveCharacter.RedSkills.First().SkillName, Anchor.Auto, Color.Red);
+            RedSkill2 = new Paragraph(game.ActiveCharacter.RedSkills.ElementAt(1).SkillName, Anchor.Auto, Color.Red);
+            RedSkill3 = new Paragraph(game.ActiveCharacter.RedSkills.Last().SkillName, Anchor.Auto, Color.Red);
+            SkillTab.panel.AddChild(BlueSkill);
+            SkillTab.panel.AddChild(YellowSkill);
+            SkillTab.panel.AddChild(OrangeSkill1);
+            SkillTab.panel.AddChild(OrangeSkill2);
+            SkillTab.panel.AddChild(RedSkill1);
+            SkillTab.panel.AddChild(RedSkill2);
+            SkillTab.panel.AddChild(RedSkill3);
             SkillTab.button.Padding = new Vector2(0, 0);
             SkillTab.button.Size = new Vector2(100, 50);
+            SkillTab.panel.Offset = new Vector2(0, -50);
             SkillTab.button.ButtonParagraph.Scale = .9f;
+
+           
 
             TabData tab1 = tabs.AddTab("Player");
             life = new Paragraph("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
@@ -398,6 +436,21 @@ namespace ZomCide
             UserInterface.Active.AddEntity(dicePanel);
         }
 
+        public void endGamePopup(bool win)
+        {
+            EndGameFlag = true;
+            Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
+            string result = (win) ? "Win!" : "Lose";
+            endPanel.AddChild(new Header("You " + result, Anchor.TopCenter));
+            var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+            okButton.OnClick = (Entity btn) =>
+            {
+                game.reset(this);
+            };
+            endPanel.AddChild(okButton);
+            UserInterface.Active.AddEntity(endPanel);
+        }
+
         void MouseClicked(Zombicide game, int LR)
         {
             int x = game.MouseState.X;
@@ -461,7 +514,7 @@ namespace ZomCide
                     }
                     foreach (Objective O in Objective.ObjectiveList)
                     {
-                        if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row==O.Tile[0]&&game.ActiveCharacter.PlayerTile.column == O.Tile[1])
+                        if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
                         {
                             O.FlipCard(game);
                         }
@@ -475,6 +528,7 @@ namespace ZomCide
 
             if (LR == 2) //Right Click
             {
+
                 foreach (Tile T in tileData)
                 {
                     Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ZomCide
 {
-    class Skill
+    public class Skill
     {
-        private string SkillName {get;set;}
+        public string SkillName {get; private set;}
 
         public Skill(string name)
         {
