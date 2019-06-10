@@ -16,25 +16,31 @@ namespace ZomCide
         public static List<int[]> SpawnTiles { get; set; }
         public static List<Zombie> zombieList;
         public static Texture2D ZombieIcon;
-        
+
+        public bool Moving { get; private set; }
         public int[] ZombieTile { get; set; } = new int[2];
+        public int[] LastTile { get; set; } = new int[2];
         public Tile locationTile { get; set; }
         public Texture2D Texture { get; set; }
         public Point Size { get; set; }
         public Point Position { get; set; }
 
+
         List<Tile> solutionPath;
         List<Tile> visitedTiles;
         List<List<Tile>> solutions;
         bool pFound;
-        
+
         public Zombie(int row, int column, Tile loc)
         {
             ZombieTile[0] = row;
             ZombieTile[1] = column;
+            LastTile[0] = row;
+            LastTile[1] = column;
             locationTile = loc;
             Texture = ZombieIcon;
             Size = new Point(40, 40);
+            Position = new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight);
         }
 
         public static void Initialize(Zombicide game)
@@ -45,6 +51,8 @@ namespace ZomCide
 
         public void move(List<Tile> tileData, Character active)
         {
+            LastTile[0] = ZombieTile[0];
+            LastTile[1] = ZombieTile[1];
             solutionPath = new List<Tile>();
             solutions = new List<List<Tile>>();
             visitedTiles = new List<Tile>();
@@ -121,14 +129,21 @@ namespace ZomCide
 
         public void Update(Zombicide game)
         {
-            Position = new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight);
+            if (Position != new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight))
+            {
+                Moving = true;
+                int Ydir = ZombieTile[0] - LastTile[0];
+                int Xdir = ZombieTile[1] - LastTile[1];
+                Position = new Point(Position.X + Xdir, Position.Y + Ydir);
+            }
+            else { Moving = false; }
         }
 
         public void Draw(Zombicide game)
         {
-            
-            game.SpriteBatch.Draw(ZombieIcon, new Rectangle(Position,Size), Color.White);
-            game.SpriteBatch.DrawString(MainGameScreen.Impact, zombieList.Where(x => x.ZombieTile[0] == ZombieTile[0] && x.ZombieTile[1] == ZombieTile[1]).Count().ToString(), new Vector2(Position.X+5,Position.Y+5), Color.Black);
+
+            game.SpriteBatch.Draw(ZombieIcon, new Rectangle(Position, Size), Color.White);
+            game.SpriteBatch.DrawString(MainGameScreen.Impact, zombieList.Where(x => x.ZombieTile[0] == ZombieTile[0] && x.ZombieTile[1] == ZombieTile[1]).Count().ToString(), new Vector2(Position.X + 5, Position.Y + 5), Color.Black);
         }
 
         internal static void AddZombie(int row, int column)
@@ -137,6 +152,11 @@ namespace ZomCide
             zombieList.Add(new Zombie(row, column, loc));
         }
 
-        
+        public static bool CheckMoving()
+        {
+            return zombieList.Any(x => x.Moving == true);
+        }
+
+
     }
 }

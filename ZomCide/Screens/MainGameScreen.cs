@@ -75,6 +75,7 @@ namespace ZomCide
         {
             int mapSpeed = 10;
             game.ActiveCharacter.Update(game);
+            bool moving = Zombie.CheckMoving() || game.ActiveCharacter.moving;
 
             //Update UI components
             life.Text = ("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
@@ -103,7 +104,7 @@ namespace ZomCide
             }
 
 
-            if (PopupFlag == false && LastPopupFlag == false)
+            if (PopupFlag == false && LastPopupFlag == false && moving == false)
             {
                 if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
                     game.MouseState.LeftButton == ButtonState.Released)
@@ -133,7 +134,8 @@ namespace ZomCide
                 Z.Update(game);
             }
 
-            if (whosTurn == MoveState.PlayerTurn)
+
+            if (whosTurn == MoveState.PlayerTurn && moving == false)
             {
                 applyMoveTiles(game);
                 if (game.ActiveCharacter.movesLeft <= 0) { whosTurn = MoveState.ZombieTurn; }

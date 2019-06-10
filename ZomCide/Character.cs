@@ -20,11 +20,10 @@ namespace ZomCide
         public static Texture2D PlayerIcon { get; set; }
 
         public char PlayerInitial { get; set; }
-        public int PlayerX { get; set; }
-        public int PlayerY { get; set; }
 
         public int DeathThreshold { get; } = 3;
         public Tile PlayerTile { get; set; } = new Tile();
+        public Tile LastTile { get; set; } = new Tile();
         public string CharacterName { get; set; }
         private int DamageTaken { get; set; }
         public int Experience { get; set; }
@@ -34,6 +33,7 @@ namespace ZomCide
         private string ArmorAlt { get; set; }
         public int numOfMoves { get; set; }
         public int movesLeft { get; set; }
+        public bool moving { get; set; }
 
         public Texture2D Texture { get; set; }
         public Point Position { get; set; }
@@ -171,7 +171,16 @@ namespace ZomCide
 
         public void Update(Zombicide game)
         {
-            Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2));
+            //This handles move animation
+            if (Position != new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)))
+            {
+                moving = true;
+                int Ydir = PlayerTile.row - LastTile.row;
+                int Xdir = PlayerTile.column - LastTile.column;
+                Position = new Point(Position.X + Xdir, Position.Y + Ydir);
+            }
+            else { moving = false; }
+
             ActiveWeapon = (((Weapon)OffHandSlot).Active) ? (Weapon)OffHandSlot : (Weapon)MainHandSlot;
         }
 
@@ -207,17 +216,22 @@ namespace ZomCide
             else return false;
         }
 
-        public void Move(string[] startTile,bool firstPlacement=false)
+        public void Move(string[] tile,bool firstPlacement=false)
         {
             if (firstPlacement)
             {
-                PlayerTile.row = Convert.ToInt32(startTile[0]);
-                PlayerTile.column = Convert.ToInt32(startTile[1]);
+                PlayerTile.row = Convert.ToInt32(tile[0]);
+                PlayerTile.column = Convert.ToInt32(tile[1]);
+                LastTile.row = PlayerTile.row;
+                LastTile.column = PlayerTile.column;
+                Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2));
             }
             else if (CheckCanMove(out int extra))
             {
-                PlayerTile.row = Convert.ToInt32(startTile[0]);
-                PlayerTile.column = Convert.ToInt32(startTile[1]);
+                LastTile.row = PlayerTile.row;
+                LastTile.column = PlayerTile.column;
+                PlayerTile.row = Convert.ToInt32(tile[0]);
+                PlayerTile.column = Convert.ToInt32(tile[1]);
                 movesLeft = movesLeft - extra - 1;
             }
             
