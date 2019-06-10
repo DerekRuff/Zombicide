@@ -11,7 +11,8 @@ namespace ZomCide
     public interface IDrawableGameObject
     {
         Texture2D Texture { get; }
-        Vector2 Position { get; }
+        Point Position { get; }
+        Point Size { get; }
         void Update(Zombicide game);
         void Draw(Zombicide game);
     }

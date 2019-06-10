@@ -16,12 +16,14 @@ namespace ZomCide
         public static Texture2D BlueX { get; set; }
         public static Texture2D GreenX { get; set; }
 
-        public Vector2 Position { get; set; }
+        public Point Position { get; set; }
+        public Point Size { get; set; }
+        public Rectangle Area { get; set; }
         public Texture2D Texture { get; set; }
         public string UndersideColor { get; set; }
         public int[] Tile { get; set; }
-        public int size { get; set; }
-        public Rectangle Area { get; set; }
+        
+        
 
         public bool flipped;
 
@@ -31,9 +33,9 @@ namespace ZomCide
             Texture = RedX;
             UndersideColor = "green";
             Tile = tile;
-            size = 50;
-            Area = new Rectangle(MainGameScreen.mapX + (Tile[1] * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - 25, MainGameScreen.mapY + Tile[0] * MainGameScreen.tileHeight + (MainGameScreen.tileWidth / 2) - 25,size,size);
-            Position = new Vector2(Area.X, Area.Y);
+            Size = new Point(50, 50);
+            Area = new Rectangle(MainGameScreen.mapX + (Tile[1] * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - 25, MainGameScreen.mapY + Tile[0] * MainGameScreen.tileHeight + (MainGameScreen.tileWidth / 2) - 25,Size.X,Size.Y);
+            Position = new Point(Area.X, Area.Y);
         }
 
         public void Update(Zombicide game)

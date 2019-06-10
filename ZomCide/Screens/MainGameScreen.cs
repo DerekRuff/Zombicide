@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TiledSharp;
 
 namespace ZomCide
 {
@@ -22,12 +23,9 @@ namespace ZomCide
         private Texture2D Highlight;
         private Texture2D closedDoor;
         private Texture2D openDoor;
-        private Texture2D zombieIcon;
-        private SpriteFont Impact;
+        public static SpriteFont Impact;
 
-        Texture2D player;
-
-        TiledSharp.TmxMap map;
+        TmxMap map;
         Texture2D mapPic;
         int mapWidth = 800;
         int mapHeight = 800;
@@ -38,15 +36,13 @@ namespace ZomCide
         public static int tilesHigh;
         public static int tilesWide;
 
-        List<Tile> tileData;
-        List<Tile> litTiles;
-        List<Tile> doorTiles;
-        List<Zombie> zombieList;
-        List<Dice> DiceList;
+        public static List<Tile> tileData;
+        public static List<Tile> litTiles;
+        public static List<Tile> doorTiles;
 
         int resetMapX;
         int resetMapY;
-        
+
         public Paragraph life { get; set; }
         public Paragraph moves { get; set; }
         public Paragraph level { get; set; }
@@ -63,10 +59,14 @@ namespace ZomCide
         public Paragraph RedSkill3 { get; set; }
 
         public bool EndGameFlag { get; set; }
+        public bool PopupFlag { get; set; }
+        public bool LastPopupFlag { get; set; }
 
         public MainGameScreen(Zombicide game)
         {
             LoadMainGame(game);
+            PopupFlag = false;
+            PopupFlag = false;
             this.game = game;
             Impact = game.Content.Load<SpriteFont>("Impact");
         }
@@ -74,7 +74,6 @@ namespace ZomCide
         public override void Update(Zombicide game)
         {
             int mapSpeed = 10;
-
             game.ActiveCharacter.Update(game);
 
             //Update UI components
@@ -95,25 +94,30 @@ namespace ZomCide
             {
                 if (game.ActiveCharacter.IsAlive == false)
                 {
-                    endGamePopup(false);
+                    EndGamePopup(false);
                 }
                 else if (Objective.ObjectiveList.Exists(x => x.flipped == true && x.UndersideColor == "blue"))
                 {
-                    endGamePopup(true);
+                    EndGamePopup(true);
                 }
             }
+            
 
-
-            if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
-                game.MouseState.LeftButton == ButtonState.Released)
+            if (PopupFlag == false && LastPopupFlag == false)
             {
-                MouseClicked(game, 1);
+                if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
+                    game.MouseState.LeftButton == ButtonState.Released)
+                {
+                    Console.WriteLine(DateTime.Now);
+                    MouseClicked(game, 1);
+                }
+                if (game.PreviousMouseState.RightButton == ButtonState.Pressed &&
+                    game.MouseState.RightButton == ButtonState.Released)
+                {
+                    MouseClicked(game, 2);
+                }
             }
-            if (game.PreviousMouseState.RightButton == ButtonState.Pressed &&
-                game.MouseState.RightButton == ButtonState.Released)
-            {
-                MouseClicked(game, 2);
-            }
+            LastPopupFlag = PopupFlag;
 
             int mapCenterX = mapX + (mapWidth / 2);
             int mapCenterY = mapY + (mapHeight / 2);
@@ -124,33 +128,36 @@ namespace ZomCide
             if (Keyboard.GetState().IsKeyDown(Keys.Down) && mapCenterY < game.GraphicsDevice.Viewport.Height) { mapY += mapSpeed; }
             tileHeight = mapHeight / tilesHigh;
             tileWidth = mapWidth / tilesWide;
-            game.ActiveCharacter.PlayerX = mapX + (Convert.ToInt32(game.ActiveCharacter.PlayerTile.column) * tileWidth) + (tileWidth / 2);
-            game.ActiveCharacter.PlayerY = mapY + (Convert.ToInt32(game.ActiveCharacter.PlayerTile.row) * tileHeight) + (tileHeight / 2);
+
+            foreach (Zombie Z in Zombie.zombieList)
+            {
+                Z.Update(game);
+            }
 
             if (whosTurn == MoveState.PlayerTurn)
             {
-
                 applyMoveTiles(game);
                 if (game.ActiveCharacter.movesLeft <= 0) { whosTurn = MoveState.ZombieTurn; }
             }
 
             if (whosTurn == MoveState.ZombieTurn)
             {
-                foreach (var ST in Zombie.SpawnTiles)
-                {
-                    if (RNG.Next(0, 2) == 1)
-                    {
-                        AddZombie(ST[0], ST[1]);
-                    }
-                }
-                foreach (Zombie Z in zombieList)
+                //Give zombies their move
+                foreach (Zombie Z in Zombie.zombieList)
                 {
                     if (game.ActiveCharacter.PlayerTile.row == Z.ZombieTile[0] && game.ActiveCharacter.PlayerTile.column == Z.ZombieTile[1])
                     { Z.attackPlayer(); }
                     else { Z.move(tileData, game.ActiveCharacter); }
 
                 }
-
+                //Spawn new Zombies
+                foreach (var ST in Zombie.SpawnTiles)
+                {
+                    if (RNG.Next(0, 2) == 1)
+                    {
+                        Zombie.AddZombie(ST[0], ST[1]);
+                    }
+                }
 
                 whosTurn = MoveState.PlayerTurn;
                 game.ActiveCharacter.resetMoves(moves);
@@ -164,7 +171,7 @@ namespace ZomCide
             {
                 O.Draw(game);
             }
-            game.SpriteBatch.Draw(player, new Rectangle(game.ActiveCharacter.PlayerX - 15, game.ActiveCharacter.PlayerY - 15, 40, 40), Color.White);
+            game.ActiveCharacter.Draw(game);
             game.SpriteBatch.Draw(resetMapButton, new Rectangle(resetMapX, resetMapY, 54, 54), Color.White);
 
             if (whosTurn == MoveState.PlayerTurn)
@@ -182,10 +189,9 @@ namespace ZomCide
                 if (T.TopSide == RoomSide.opendoor) { game.SpriteBatch.Draw(openDoor, new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50), Color.White); }
 
             }
-            foreach (Zombie Z in zombieList)
+            foreach (Zombie Z in Zombie.zombieList)
             {
-                game.SpriteBatch.Draw(zombieIcon, new Rectangle(mapX + Z.ZombieTile[1] * tileWidth, mapY + Z.ZombieTile[0] * tileHeight, 40, 40), Color.White);
-                game.SpriteBatch.DrawString(Impact, zombieList.Where(x => x.ZombieTile[0] == Z.ZombieTile[0] && x.ZombieTile[1] == Z.ZombieTile[1]).Count().ToString(), new Vector2((mapX + Z.ZombieTile[1] * tileWidth) + 5, (mapY + Z.ZombieTile[0] * tileHeight) + 5), Color.Black);
+                Z.Draw(game);
             }
 
 
@@ -199,7 +205,6 @@ namespace ZomCide
             Highlight = game.Content.Load<Texture2D>(@"Highlight");
             closedDoor = game.Content.Load<Texture2D>(@"ClosedDoor");
             openDoor = game.Content.Load<Texture2D>(@"OpenDoor");
-            zombieIcon = game.Content.Load<Texture2D>(@"ZombieIcon");
             mapX = (game.GraphicsDevice.Viewport.Width / 2) - (mapWidth / 2);
             mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
             tilesHigh = Convert.ToInt32(map.Layers[0].Properties.Where(x => x.Key == "TilesHigh").FirstOrDefault().Value);
@@ -224,12 +229,8 @@ namespace ZomCide
             resetMapY = game.GraphicsDevice.Viewport.Height - 54;
 
             //read in Start tile from map data and place player there
-            player = game.Content.Load<Texture2D>(@"playerIcons/" + game.ActiveCharacter.PlayerIcon);
             var startTile = map.Layers[0].Properties.Where(x => x.Key == "StartTile").FirstOrDefault().Value.Split(',');
-            game.ActiveCharacter.PlayerTile.row = Convert.ToInt32(startTile[0]);
-            game.ActiveCharacter.PlayerTile.column = Convert.ToInt32(startTile[1]);
-            game.ActiveCharacter.PlayerX = mapX + (Convert.ToInt32(startTile[1]) * tileWidth) + (tileWidth / 2);
-            game.ActiveCharacter.PlayerY = mapY + (Convert.ToInt32(startTile[0]) * tileHeight) + (tileHeight / 2);
+            game.ActiveCharacter.Move(startTile);
 
             //Load Zombie Spawns
             Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x => x.Value.Split(',').Select(y => Convert.ToInt32(y)).ToArray()).ToList();
@@ -292,7 +293,7 @@ namespace ZomCide
             SkillTab.panel.Offset = new Vector2(0, -50);
             SkillTab.button.ButtonParagraph.Scale = .9f;
 
-           
+
 
             TabData tab1 = tabs.AddTab("Player");
             life = new Paragraph("Life: " + (game.ActiveCharacter.DeathThreshold - game.ActiveCharacter.GetDamageTaken()).ToString());
@@ -332,16 +333,9 @@ namespace ZomCide
             whosTurn = MoveState.PlayerTurn;
             applyMoveTiles(game);
 
-            //Initialize lists
-            zombieList = new List<Zombie>();
-            DiceList = new List<Dice>();
-        }
-
-        void AddZombie(int row, int column)
-        {
-
-            Tile Testloc = tileData.Find(x => x.row == row && x.column == column);
-            zombieList.Add(new Zombie(row, column, Testloc, game));
+            //Initialize Dice and Zombies
+            Zombie.Initialize(game);
+            Dice.Initialize(game);
         }
 
 
@@ -407,20 +401,19 @@ namespace ZomCide
             if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
         }
 
-        public void addDice(Dice D)
-        {
-            DiceList.Add(D);
-        }
+
 
         public void DicePopup()
         {
+            PopupFlag = true;
+
             Panel dicePanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
             var hitText = new Header("", Anchor.TopCenter);
             dicePanel.AddChild(hitText);
             int hits = 0;
-            foreach (Dice D in DiceList)
+            foreach (Dice D in Dice.DiceList)
             {
-                dicePanel.AddChild(new Image(D.Texture, new Vector2(50, 50), ImageDrawMode.Stretch, Anchor.AutoInline));
+                dicePanel.AddChild(new Image(D.Texture, new Vector2(D.Size.X, D.Size.Y), ImageDrawMode.Stretch, Anchor.AutoInline));
                 if (D.value >= game.ActiveCharacter.ActiveWeapon.DiceThreshold)
                 { hits++; }
             }
@@ -428,139 +421,158 @@ namespace ZomCide
             var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
             okButton.OnClick = (Entity btn) =>
             {
+                PopupFlag = false;
+                LastPopupFlag = true;
+                Dice.Clear();
                 UserInterface.Active.RemoveEntity(dicePanel);
                 dicePanel.Dispose();
-                DiceList.Clear();
+
+
             };
             dicePanel.AddChild(okButton);
             UserInterface.Active.AddEntity(dicePanel);
         }
 
-        public void endGamePopup(bool win)
-        {
-            EndGameFlag = true;
-            Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
-            string result = (win) ? "Win!" : "Lose";
-            endPanel.AddChild(new Header("You " + result, Anchor.TopCenter));
-            var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
-            okButton.OnClick = (Entity btn) =>
+        public void EndGamePopup(bool win)
             {
-                game.reset(this);
-            };
-            endPanel.AddChild(okButton);
-            UserInterface.Active.AddEntity(endPanel);
-        }
-
-        void MouseClicked(Zombicide game, int LR)
-        {
-            int x = game.MouseState.X;
-            int y = game.MouseState.Y;
-
-            Rectangle mouseClickRect = new Rectangle(x, y, 10, 10);
-
-            if (LR == 1) //left Click
-            {
-                Rectangle resetMapRect = new Rectangle(resetMapX, resetMapY, 54, 54);
-                if (mouseClickRect.Intersects(resetMapRect))
+                EndGameFlag = true;
+                Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
+                string result = (win) ? "Win!" : "Lose";
+                endPanel.AddChild(new Header("You " + result, Anchor.TopCenter));
+                var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+                okButton.OnClick = (Entity btn) =>
                 {
-                    mapWidth = 800;
-                    mapHeight = 800;
-                    mapX = (game.GraphicsDevice.Viewport.Width / 2) - (mapWidth / 2);
-                    mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
+                    game.Reset(this);
+                };
+                endPanel.AddChild(okButton);
+                UserInterface.Active.AddEntity(endPanel);
+            }
+
+            void MouseClicked(Zombicide game, int LR)
+            {
+                int x = game.MouseState.X;
+                int y = game.MouseState.Y;
+
+                Rectangle mouseClickRect = new Rectangle(x, y, 10, 10);
+
+                if (LR == 1) //left Click
+                {
+                    Rectangle resetMapRect = new Rectangle(resetMapX, resetMapY, 54, 54);
+                    if (mouseClickRect.Intersects(resetMapRect))
+                    {
+                        mapWidth = 800;
+                        mapHeight = 800;
+                        mapX = (game.GraphicsDevice.Viewport.Width / 2) - (mapWidth / 2);
+                        mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
+                    }
+
+
+                    if (whosTurn == MoveState.PlayerTurn)
+                    {
+
+
+
+                        foreach (Tile T in doorTiles)
+                        {
+                            Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
+                            Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
+                            if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
+                            {
+                                PopupFlag = true;
+                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"left");
+                                    PopupFlag = false;
+                                    return true;
+                                }),
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
+                                    PopupFlag = false;
+                                    return true;
+                                }) });
+                                return;
+                            }
+                            else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
+                            {
+                                PopupFlag = true;
+                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"top");
+                                    PopupFlag = false;
+                                    return true;
+                                }),
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
+                                    PopupFlag = false;
+                                    return true;
+                                }) });
+                                return;
+                            }
+                        }
+                        foreach (Objective O in Objective.ObjectiveList)
+                        {
+                            if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
+                            {
+                                O.FlipCard(game);
+                                return;
+                            }
+                        }
+                        foreach (Tile T in litTiles)
+                        {
+                            Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
+                            if (mouseClickRect.Intersects(tileRect))
+                            {
+                                game.ActiveCharacter.PlayerTile.row = T.row;
+                                game.ActiveCharacter.PlayerTile.column = T.column;
+                                applyMoveTiles(game);
+                                game.ActiveCharacter.movesLeft--;
+                                moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
+                                if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
+                                return;
+                            }
+                        }
+
+
+                    }
+
+
+
                 }
 
-
-                if (whosTurn == MoveState.PlayerTurn)
+                if (LR == 2) //Right Click
                 {
 
-
-
-                    foreach (Tile T in doorTiles)
-                    {
-                        Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
-                        Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
-                        if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                        {
-                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"left");
-                                    return true;
-                                }),
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
-                                    return true; }) });
-                        }
-                        else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                        {
-                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"top");
-                                    return true;
-                                }),
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
-                                    return true; }) });
-                        }
-                    }
-                    foreach (Tile T in litTiles)
+                    foreach (Tile T in tileData)
                     {
                         Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
                         if (mouseClickRect.Intersects(tileRect))
                         {
-                            game.ActiveCharacter.PlayerTile.row = T.row;
-                            game.ActiveCharacter.PlayerTile.column = T.column;
-                            applyMoveTiles(game);
-                            game.ActiveCharacter.movesLeft--;
-                            moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
-                            if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
-                            break;
-                        }
-                    }
-                    foreach (Objective O in Objective.ObjectiveList)
-                    {
-                        if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
-                        {
-                            O.FlipCard(game);
-                        }
-                    }
-
-                }
-
-
-
-            }
-
-            if (LR == 2) //Right Click
-            {
-
-                foreach (Tile T in tileData)
-                {
-                    Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
-                    if (mouseClickRect.Intersects(tileRect))
-                    {
-                        List<Zombie> tileZombies = new List<Zombie>();
-                        tileZombies = zombieList.FindAll(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column);
-                        if (tileZombies.Count > 0)
-                        {
-                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Zombie", "Attack Zombie In This Tile?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                            List<Zombie> tileZombies = new List<Zombie>();
+                            tileZombies = Zombie.zombieList.FindAll(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column);
+                            if (tileZombies.Count > 0)
+                            {
+                                PopupFlag = true;
+                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Zombie", "Attack Zombie In This Tile?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {
                                     var hits=game.ActiveCharacter.Attack(game,tileZombies.First());
                                     for (int i =0;i< hits;i++)
                                     {
                                         if(tileZombies.Count > 0)
                                         {
-                                            zombieList.RemoveAt(zombieList.FindIndex(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column));
+                                            Zombie.zombieList.RemoveAt(Zombie.zombieList.FindIndex(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column));
                                             tileZombies.RemoveAt(0);
                                             game.ActiveCharacter.ApplyExperience(1);
                                         }
 
                                     }
+                                    PopupFlag = false;
                                     return true;
                                 }),
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
+                                    PopupFlag = false;
                                     return true; }) });
-                        }
+                            }
 
+                        }
                     }
                 }
             }
-        }
 
+        }
     }
-}

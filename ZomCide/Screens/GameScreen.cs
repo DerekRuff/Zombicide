@@ -13,7 +13,8 @@ namespace ZomCide
     {
         
         public Texture2D Texture { get; private set; }
-        public Vector2 Position { get; private set; }
+        public Point Position { get; private set; }
+        public Point Size { get; private set; }
 
         public virtual void LoadContent(Zombicide game)
         {

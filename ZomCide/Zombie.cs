@@ -5,30 +5,42 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace ZomCide
 {
-    class Zombie
+    class Zombie : IDrawableGameObject
     {
         public static Texture2D Icon { get; set; }
         public static Zombicide Game { get; set; }
         public static List<int[]> SpawnTiles { get; set; }
-        public int ZombieX { get; set; }
-        public int ZombieY { get; set; }
+        public static List<Zombie> zombieList;
+        public static Texture2D ZombieIcon;
+        
         public int[] ZombieTile { get; set; } = new int[2];
         public Tile locationTile { get; set; }
+        public Texture2D Texture { get; set; }
+        public Point Size { get; set; }
+        public Point Position { get; set; }
+
         List<Tile> solutionPath;
         List<Tile> visitedTiles;
         List<List<Tile>> solutions;
         bool pFound;
         
-
-        public Zombie(int row, int column, Tile loc, Zombicide game)
+        public Zombie(int row, int column, Tile loc)
         {
             ZombieTile[0] = row;
             ZombieTile[1] = column;
             locationTile = loc;
-            Game = game;
+            Texture = ZombieIcon;
+            Size = new Point(40, 40);
+        }
+
+        public static void Initialize(Zombicide game)
+        {
+            zombieList = new List<Zombie>();
+            ZombieIcon = game.Content.Load<Texture2D>(@"ZombieIcon");
         }
 
         public void move(List<Tile> tileData, Character active)
@@ -106,5 +118,25 @@ namespace ZomCide
             var mainScreen = (MainGameScreen)Game.CurrentScreen;
             mainScreen.life.Text = "Life: " + (Game.ActiveCharacter.DeathThreshold - Game.ActiveCharacter.GetDamageTaken()).ToString();
         }
+
+        public void Update(Zombicide game)
+        {
+            Position = new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight);
+        }
+
+        public void Draw(Zombicide game)
+        {
+            
+            game.SpriteBatch.Draw(ZombieIcon, new Rectangle(Position,Size), Color.White);
+            game.SpriteBatch.DrawString(MainGameScreen.Impact, zombieList.Where(x => x.ZombieTile[0] == ZombieTile[0] && x.ZombieTile[1] == ZombieTile[1]).Count().ToString(), new Vector2(Position.X+5,Position.Y+5), Color.Black);
+        }
+
+        internal static void AddZombie(int row, int column)
+        {
+            Tile loc = MainGameScreen.tileData.Find(x => x.row == row && x.column == column);
+            zombieList.Add(new Zombie(row, column, loc));
+        }
+
+        
     }
 }

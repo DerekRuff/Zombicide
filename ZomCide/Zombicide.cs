@@ -156,7 +156,7 @@ namespace ZomCide
             }
         }
 
-        public void reset(GameScreen screen)
+        public void Reset(GameScreen screen)
         {
             SetNextScreen("StartScreen");
             screen = null;

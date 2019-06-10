@@ -17,13 +17,14 @@ namespace ZomCide
 {
     public class Character : IDrawableGameObject
     {
-        public char PlayerIcon { get; set; }
+        public static Texture2D PlayerIcon { get; set; }
+
+        public char PlayerInitial { get; set; }
         public int PlayerX { get; set; }
         public int PlayerY { get; set; }
-        public Tile PlayerTile { get; set; } = new Tile();
 
         public int DeathThreshold { get; } = 3;
-
+        public Tile PlayerTile { get; set; } = new Tile();
         public string CharacterName { get; set; }
         private int DamageTaken { get; set; }
         public int Experience { get; set; }
@@ -35,8 +36,8 @@ namespace ZomCide
         public int movesLeft { get; set; }
 
         public Texture2D Texture { get; set; }
-
-        public Vector2 Position { get; set; }
+        public Point Position { get; set; }
+        public Point Size { get; set; }
 
         public Item MainHandSlot;
         public Item OffHandSlot;
@@ -71,12 +72,19 @@ namespace ZomCide
             RedSkills.Add(new Skill(rs2));
             RedSkills.Add(new Skill(rs3));
             ArmorAlt = Aalt;
-            PlayerIcon = CharacterName.First();
+            PlayerInitial = CharacterName.First();
             numOfMoves = 2;
             movesLeft = numOfMoves;
-            MainHandSlot = new Weapon("Sword of Summoning",1, 4, false, 0, 1, 3,true);
+            MainHandSlot = new Weapon("Sword of Summoning", 1, 4, false, 0, 1, 3, true);
             OffHandSlot = new Weapon("Dagger of Danger", 1, 5, false, 0, 4, 6);
             ActiveWeapon = (Weapon)MainHandSlot;
+            Size = new Point(40, 40);
+            Texture = PlayerIcon;
+        }
+
+        public static void Initialize(Zombicide game,char initial)
+        {
+            PlayerIcon = game.Content.Load<Texture2D>(@"playerIcons/" + initial);
         }
 
         private void LoadCharacter(string CharacterSelection)
@@ -163,12 +171,13 @@ namespace ZomCide
 
         public void Update(Zombicide game)
         {
+            Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2));
             ActiveWeapon = (((Weapon)OffHandSlot).Active) ? (Weapon)OffHandSlot : (Weapon)MainHandSlot;
         }
 
         public void Draw(Zombicide game)
         {
-
+            game.SpriteBatch.Draw(Texture, new Rectangle(Position, Size), Color.White);
         }
 
         internal int Attack(Zombicide game, Zombie Z)
@@ -176,22 +185,14 @@ namespace ZomCide
             int hits = 0;
             if (CheckCanAttack(game, Z))
             {
-                
-                var diceList = new List<Dice>();
-                for (int i = 0; i < ActiveWeapon.Dice; i++)
-                {
-                    var d = new Dice(game);
-                    diceList.Add(d);
-                    d.Roll();
-                    if (d.value >= ActiveWeapon.DiceThreshold)
-                    { hits++; }
-                }
-                
+
+                Dice.addDice(ActiveWeapon.Dice);
+                Dice.Roll();
+                hits = Dice.CalculateHits(ActiveWeapon.DiceThreshold);
                 var mainScreen = (MainGameScreen)game.CurrentScreen;
                 mainScreen.DicePopup();
                 movesLeft--;
-                mainScreen.moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
-                
+
             }
             return hits;
         }
@@ -204,6 +205,12 @@ namespace ZomCide
             else if (Z.ZombieTile[1] == PlayerTile.column && Math.Abs(Z.ZombieTile[0] - PlayerTile.row) <= ActiveWeapon.MaxRange && Math.Abs(Z.ZombieTile[0] - PlayerTile.row) >= ActiveWeapon.MinRange)
             { return true; }
             else return false;
+        }
+
+        public void Move(string[] startTile)
+        {
+            PlayerTile.row = Convert.ToInt32(startTile[0]);
+            PlayerTile.column = Convert.ToInt32(startTile[1]);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace ZomCide
 
         public CharacterSelectScreen(Zombicide game)
         {
+            
             LoadCharSelection(game);
         }
 
@@ -88,6 +89,7 @@ namespace ZomCide
             //Set events
             ConfirmBut.OnClick = (Entity btn) =>
             {
+                Character.Initialize(game,list.SelectedValue.First());
                 SelectedCharacter = new Character(list.SelectedValue, bs.Text, ys.Text, os1.Text, os2.Text, rs1.Text, rs2.Text, rs3.Text, ArmAlt.Text);
                 UserInterface.Active.Clear();
                 game.SetNextScreen(nameof(MainGameScreen));
