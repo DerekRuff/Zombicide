@@ -73,7 +73,7 @@ namespace ZomCide
             RedSkills.Add(new Skill(rs3));
             ArmorAlt = Aalt;
             PlayerInitial = CharacterName.First();
-            numOfMoves = 2;
+            numOfMoves = 3;
             movesLeft = numOfMoves;
             MainHandSlot = new Weapon("Sword of Summoning", 1, 4, false, 0, 1, 3, true);
             OffHandSlot = new Weapon("Dagger of Danger", 1, 5, false, 0, 4, 6);
@@ -207,10 +207,28 @@ namespace ZomCide
             else return false;
         }
 
-        public void Move(string[] startTile)
+        public void Move(string[] startTile,bool firstPlacement=false)
         {
-            PlayerTile.row = Convert.ToInt32(startTile[0]);
-            PlayerTile.column = Convert.ToInt32(startTile[1]);
+            if (firstPlacement)
+            {
+                PlayerTile.row = Convert.ToInt32(startTile[0]);
+                PlayerTile.column = Convert.ToInt32(startTile[1]);
+            }
+            else if (CheckCanMove(out int extra))
+            {
+                PlayerTile.row = Convert.ToInt32(startTile[0]);
+                PlayerTile.column = Convert.ToInt32(startTile[1]);
+                movesLeft = movesLeft - extra - 1;
+            }
+            
+        }
+
+        private bool CheckCanMove(out int extra)
+        {
+            extra = Zombie.zombieList.Where(x => x.ZombieTile[0] == PlayerTile.row && x.ZombieTile[1] == PlayerTile.column).Count();
+            if (extra >= movesLeft)
+                return false;
+            else return true;
         }
     }
 }

@@ -101,14 +101,13 @@ namespace ZomCide
                     EndGamePopup(true);
                 }
             }
-            
+
 
             if (PopupFlag == false && LastPopupFlag == false)
             {
                 if (game.PreviousMouseState.LeftButton == ButtonState.Pressed &&
                     game.MouseState.LeftButton == ButtonState.Released)
                 {
-                    Console.WriteLine(DateTime.Now);
                     MouseClicked(game, 1);
                 }
                 if (game.PreviousMouseState.RightButton == ButtonState.Pressed &&
@@ -230,7 +229,7 @@ namespace ZomCide
 
             //read in Start tile from map data and place player there
             var startTile = map.Layers[0].Properties.Where(x => x.Key == "StartTile").FirstOrDefault().Value.Split(',');
-            game.ActiveCharacter.Move(startTile);
+            game.ActiveCharacter.Move(startTile,true);
 
             //Load Zombie Spawns
             Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x => x.Value.Split(',').Select(y => Convert.ToInt32(y)).ToArray()).ToList();
@@ -434,52 +433,52 @@ namespace ZomCide
         }
 
         public void EndGamePopup(bool win)
+        {
+            EndGameFlag = true;
+            Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
+            string result = (win) ? "Win!" : "Lose";
+            endPanel.AddChild(new Header("You " + result, Anchor.TopCenter));
+            var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+            okButton.OnClick = (Entity btn) =>
             {
-                EndGameFlag = true;
-                Panel endPanel = new Panel(new Vector2(400, 400), PanelSkin.Simple, Anchor.Center);
-                string result = (win) ? "Win!" : "Lose";
-                endPanel.AddChild(new Header("You " + result, Anchor.TopCenter));
-                var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
-                okButton.OnClick = (Entity btn) =>
-                {
-                    game.Reset(this);
-                };
-                endPanel.AddChild(okButton);
-                UserInterface.Active.AddEntity(endPanel);
-            }
+                game.Reset(this);
+            };
+            endPanel.AddChild(okButton);
+            UserInterface.Active.AddEntity(endPanel);
+        }
 
-            void MouseClicked(Zombicide game, int LR)
+        void MouseClicked(Zombicide game, int LR)
+        {
+            int x = game.MouseState.X;
+            int y = game.MouseState.Y;
+
+            Rectangle mouseClickRect = new Rectangle(x, y, 10, 10);
+
+            if (LR == 1) //left Click
             {
-                int x = game.MouseState.X;
-                int y = game.MouseState.Y;
-
-                Rectangle mouseClickRect = new Rectangle(x, y, 10, 10);
-
-                if (LR == 1) //left Click
+                Rectangle resetMapRect = new Rectangle(resetMapX, resetMapY, 54, 54);
+                if (mouseClickRect.Intersects(resetMapRect))
                 {
-                    Rectangle resetMapRect = new Rectangle(resetMapX, resetMapY, 54, 54);
-                    if (mouseClickRect.Intersects(resetMapRect))
+                    mapWidth = 800;
+                    mapHeight = 800;
+                    mapX = (game.GraphicsDevice.Viewport.Width / 2) - (mapWidth / 2);
+                    mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
+                }
+
+
+                if (whosTurn == MoveState.PlayerTurn)
+                {
+
+
+
+                    foreach (Tile T in doorTiles)
                     {
-                        mapWidth = 800;
-                        mapHeight = 800;
-                        mapX = (game.GraphicsDevice.Viewport.Width / 2) - (mapWidth / 2);
-                        mapY = (game.GraphicsDevice.Viewport.Height / 2) - (mapHeight / 2);
-                    }
-
-
-                    if (whosTurn == MoveState.PlayerTurn)
-                    {
-
-
-
-                        foreach (Tile T in doorTiles)
+                        Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
+                        Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
+                        if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
                         {
-                            Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
-                            Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
-                            if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                            {
-                                PopupFlag = true;
-                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                            PopupFlag = true;
+                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"left");
                                     PopupFlag = false;
                                     return true;
@@ -488,12 +487,12 @@ namespace ZomCide
                                     PopupFlag = false;
                                     return true;
                                 }) });
-                                return;
-                            }
-                            else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                            {
-                                PopupFlag = true;
-                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                            return;
+                        }
+                        else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
+                        {
+                            PopupFlag = true;
+                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"top");
                                     PopupFlag = false;
                                     return true;
@@ -502,53 +501,50 @@ namespace ZomCide
                                     PopupFlag = false;
                                     return true;
                                 }) });
-                                return;
-                            }
+                            return;
                         }
-                        foreach (Objective O in Objective.ObjectiveList)
-                        {
-                            if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
-                            {
-                                O.FlipCard(game);
-                                return;
-                            }
-                        }
-                        foreach (Tile T in litTiles)
-                        {
-                            Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
-                            if (mouseClickRect.Intersects(tileRect))
-                            {
-                                game.ActiveCharacter.PlayerTile.row = T.row;
-                                game.ActiveCharacter.PlayerTile.column = T.column;
-                                applyMoveTiles(game);
-                                game.ActiveCharacter.movesLeft--;
-                                moves.Text = "Moves Left: " + (game.ActiveCharacter.movesLeft).ToString();
-                                if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
-                                return;
-                            }
-                        }
-
-
                     }
-
-
-
-                }
-
-                if (LR == 2) //Right Click
-                {
-
-                    foreach (Tile T in tileData)
+                    foreach (Objective O in Objective.ObjectiveList)
+                    {
+                        if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
+                        {
+                            O.FlipCard(game);
+                            return;
+                        }
+                    }
+                    foreach (Tile T in litTiles)
                     {
                         Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
                         if (mouseClickRect.Intersects(tileRect))
                         {
-                            List<Zombie> tileZombies = new List<Zombie>();
-                            tileZombies = Zombie.zombieList.FindAll(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column);
-                            if (tileZombies.Count > 0)
-                            {
-                                PopupFlag = true;
-                                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Zombie", "Attack Zombie In This Tile?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                            game.ActiveCharacter.Move(new string[] { T.row.ToString(), T.column.ToString() });
+                            applyMoveTiles(game);
+                            if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
+                            return;
+                        }
+                    }
+
+
+                }
+
+
+
+            }
+
+            if (LR == 2) //Right Click
+            {
+
+                foreach (Tile T in tileData)
+                {
+                    Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
+                    if (mouseClickRect.Intersects(tileRect))
+                    {
+                        List<Zombie> tileZombies = new List<Zombie>();
+                        tileZombies = Zombie.zombieList.FindAll(z => z.ZombieTile[0] == T.row && z.ZombieTile[1] == T.column);
+                        if (tileZombies.Count > 0)
+                        {
+                            PopupFlag = true;
+                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Zombie", "Attack Zombie In This Tile?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {
                                     var hits=game.ActiveCharacter.Attack(game,tileZombies.First());
                                     for (int i =0;i< hits;i++)
@@ -567,12 +563,12 @@ namespace ZomCide
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
                                     PopupFlag = false;
                                     return true; }) });
-                            }
-
                         }
+
                     }
                 }
             }
-
         }
+
     }
+}
