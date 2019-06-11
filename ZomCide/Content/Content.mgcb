@@ -58,6 +58,9 @@
 /processorParam:TextureFormat=Color
 /build:ClosedDoor.png
 
+#begin Data/Items.xml
+/copy:Data/Items.xml
+
 #begin Data/Zombicide Characters.xml
 /copy:Data/Zombicide Characters.xml
 
@@ -4924,6 +4927,54 @@
 /processorParam:TextureFormat=Color
 /build:Highlight.png
 
+#begin Items/Hammer.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Items/Hammer.jpg
+
+#begin Items/Mana_Blast.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Items/Mana_Blast.jpg
+
+#begin Items/Short_Bow.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Items/Short_Bow.jpg
+
+#begin Items/Short_Sword.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Items/Short_Sword.jpg
+
 #begin New Game.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -5182,8 +5233,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Zombicide Background.jpg
-
-
 
 #begin Zombicide Font.spritefont
 /importer:FontDescriptionImporter

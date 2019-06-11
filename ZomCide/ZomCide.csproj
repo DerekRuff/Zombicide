@@ -43,6 +43,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Character.cs" />
+    <Compile Include="Enums\WeaponType.cs" />
+    <Compile Include="Enums\Level.cs" />
+    <Compile Include="Enums\DoorOpener.cs" />
     <Compile Include="Enums\GameState.cs" />
     <Compile Include="Enums\MoveState.cs" />
     <Compile Include="Enums\RoomSide.cs" />

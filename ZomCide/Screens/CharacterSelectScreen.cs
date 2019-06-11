@@ -20,7 +20,7 @@ namespace ZomCide
 
         public CharacterSelectScreen(Zombicide game)
         {
-            
+            Item.Initialize();
             LoadCharSelection(game);
         }
 
@@ -34,6 +34,8 @@ namespace ZomCide
 
         void LoadCharSelection(Zombicide game)
         {
+
+
             //Setup Last Panel to hold skills and confirm button
             Panel skillPanel = new Panel(new Vector2(400, 600), PanelSkin.Default, Anchor.AutoInline);
             Paragraph bs = new Paragraph("Blue Skill", Anchor.Auto, Color.DeepSkyBlue);
@@ -91,9 +93,7 @@ namespace ZomCide
             {
                 Character.Initialize(game,list.SelectedValue.First());
                 SelectedCharacter = new Character(list.SelectedValue, bs.Text, ys.Text, os1.Text, os2.Text, rs1.Text, rs2.Text, rs3.Text, ArmAlt.Text);
-                UserInterface.Active.Clear();
-                game.SetNextScreen(nameof(MainGameScreen));
-                //LoadMainGame();
+                StarterPopup(game);
             };
 
             list.OnValueChange = (Entity lst) =>
@@ -131,7 +131,7 @@ namespace ZomCide
                 string fileName = name + ".jpg";
                 var imgPath = Path.Combine(baseDir, @"Data\", fileName);
                 FileStream imgFile = File.OpenRead(imgPath);
-                img.Texture = Texture2D.FromStream(game.GraphicsDevice, imgFile); ;
+                img.Texture = Texture2D.FromStream(game.GraphicsDevice, imgFile); 
             };
         }
 
@@ -143,6 +143,42 @@ namespace ZomCide
             doc.Load(CharPath);
             return doc;
 
+        }
+
+        private void StarterPopup(Zombicide game)
+        {
+            UserInterface.Active.Clear();
+            Panel StarterPopup = new Panel(new Vector2(600, 700), PanelSkin.Default, Anchor.Center);
+            var header = new Header("Select Starter Weapon", Anchor.TopCenter);
+
+            string fileName = Item.StarterList.First().Name.Replace(' ', '_');
+            Texture2D item =  game.Content.Load<Texture2D>(@"Items\"+fileName);
+
+            Image wpnImage = new Image(item,new Vector2(350,500),anchor:Anchor.AutoCenter);
+
+            var leftButton = new Button("", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(50, 50));
+            leftButton.Padding = new Vector2(0, 0);
+            leftButton.AddChild(new Paragraph("<", Anchor.Center));
+            
+            var rightButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(50, 50));
+            rightButton.Padding = new Vector2(0, 0);
+            rightButton.AddChild(new Paragraph(">", Anchor.Center));
+
+            var button = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+            button.OnClick = (Entity btn) =>
+            {
+                UserInterface.Active.Clear();
+                game.SetNextScreen(nameof(MainGameScreen));
+            };
+
+            StarterPopup.AddChild(header);
+            StarterPopup.AddChild(new HorizontalLine());
+            StarterPopup.AddChild(wpnImage);
+            StarterPopup.AddChild(leftButton);
+            StarterPopup.AddChild(rightButton);
+            StarterPopup.AddChild(button);
+            UserInterface.Active.AddEntity(StarterPopup);
+            
         }
 
     }

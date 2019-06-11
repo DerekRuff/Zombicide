@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace ZomCide
 {
@@ -14,6 +15,13 @@ namespace ZomCide
         public int MinRange;
         public int MaxRange;
         public bool Active;
+        public bool Starter;
+        public DoorOpener DoorStatus;
+        public Level MinimumLevel;
+        public WeaponType Type;
+        public bool DualWield;
+        
+
         /// <summary>
         /// Indicates the number of dice that can be rolled when using this item
         /// </summary>
@@ -31,5 +39,19 @@ namespace ZomCide
             Active = active;
         }
 
+        public Weapon(XmlNode i)
+        {
+            Name = i.ChildNodes.Item(0).InnerText;
+            Starter = Boolean.Parse(i.ChildNodes.Item(1).InnerText);
+            Enum.TryParse(i.ChildNodes.Item(2).InnerText,out Type);
+            MinRange = Convert.ToInt32(i.ChildNodes.Item(3).InnerText);
+            MaxRange = Convert.ToInt32(i.ChildNodes.Item(4).InnerText);
+            Dice = Convert.ToInt32(i.ChildNodes.Item(5).InnerText);
+            DiceThreshold = Convert.ToInt32(i.ChildNodes.Item(6).InnerText);
+            Damage = Convert.ToInt32(i.ChildNodes.Item(7).InnerText);
+            Enum.TryParse(i.ChildNodes.Item(8).InnerText, out DoorStatus);
+            Enum.TryParse(i.ChildNodes.Item(9).InnerText, out MinimumLevel);
+            DualWield = Boolean.Parse(i.ChildNodes.Item(10).InnerText);
+        }
     }
 }

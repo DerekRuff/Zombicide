@@ -1,0 +1,51 @@
+<?xml version= "1.0"?>
+<Characters>
+	<Character>
+		<Name>Karl</Name>
+		<BlueSkill>Extra Magic Die</BlueSkill>
+		<YellowSkill>Extra Action</YellowSkill>
+		<OrangeSkill>Extra Combat Action</OrangeSkill>
+		<OrangeSkill>Spellcaster</OrangeSkill>
+		<RedSkill>Extra Combat Action</RedSkill>
+		<RedSkill>Extra Max Range</RedSkill>
+		<RedSkill>Marksman</RedSkill>
+		<ArmorAlt>Fireball</ArmorAlt>
+		<Image></Image>
+	</Character>
+	<Character>
+		<Name>Theo</Name>
+		<BlueSkill>Sprint</BlueSkill>
+		<YellowSkill>Extra Action</YellowSkill>
+		<OrangeSkill>Extra Melee Die</OrangeSkill>
+		<OrangeSkill>Extra Dice Roll Ranged</OrangeSkill>
+		<RedSkill>Extra Combat Action</RedSkill>
+		<RedSkill>Charge</RedSkill>
+		<RedSkill>Marksman</RedSkill>
+		<ArmorAlt>Sword</ArmorAlt>
+		<Image></Image>
+	</Character>
+	<Character>
+		<Name>Ann</Name>
+		<BlueSkill>Bloodlust: Melee</BlueSkill>
+		<YellowSkill>Extra Action</YellowSkill>
+		<OrangeSkill>Extra Magic Action</OrangeSkill>
+		<OrangeSkill>Extra Melee Action</OrangeSkill>
+		<RedSkill>Extra Combat Action</RedSkill>
+		<RedSkill>Extra Dice Roll Combat</RedSkill>
+		<RedSkill>Roll 6: Extra Combat Die</RedSkill>
+		<ArmorAlt>Dagger</ArmorAlt>
+		<Image></Image>
+	</Character>
+	<Character>
+		<Name>Julian</Name>
+		<BlueSkill>Hold Your Nose</BlueSkill>
+		<YellowSkill>Extra Action</YellowSkill>
+		<OrangeSkill>Extra Melee Damage</OrangeSkill>
+		<OrangeSkill>Hit And Run</OrangeSkill>
+		<RedSkill>Extra Combat Action</RedSkill>
+		<RedSkill>Jump</RedSkill>
+		<RedSkill>Reaper: Combat</RedSkill>
+		<ArmorAlt>Dagger</ArmorAlt>
+		<Image></Image>
+	</Character>
+</Characters>
