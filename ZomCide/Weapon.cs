@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ZomCide
 {
@@ -27,7 +29,7 @@ namespace ZomCide
         /// </summary>
         public int Dice { get; private set; }
 
-        public Weapon(string name,int damage, int threshold, bool doors, int minRange, int maxRange, int dice, bool active = false) : base()
+        public Weapon(string name,int damage, int threshold, bool doors, int minRange, int maxRange, int dice, bool active = false)  :base ()
         {
             Name = name;
             Damage = damage;
@@ -39,7 +41,7 @@ namespace ZomCide
             Active = active;
         }
 
-        public Weapon(XmlNode i)
+        public Weapon(Zombicide game, XmlNode i) : base(game,i)
         {
             Name = i.ChildNodes.Item(0).InnerText;
             Starter = Boolean.Parse(i.ChildNodes.Item(1).InnerText);
@@ -53,5 +55,7 @@ namespace ZomCide
             Enum.TryParse(i.ChildNodes.Item(9).InnerText, out MinimumLevel);
             DualWield = Boolean.Parse(i.ChildNodes.Item(10).InnerText);
         }
+
+        
     }
 }

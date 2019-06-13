@@ -18,6 +18,8 @@ namespace ZomCide
     public class Character : IDrawableGameObject
     {
         public static Texture2D PlayerIcon { get; set; }
+        public static Texture2D EmptyHand { get; set; }
+        public static Texture2D EmptyArmor { get; set; }
 
         public char PlayerInitial { get; set; }
 
@@ -34,6 +36,7 @@ namespace ZomCide
         public int numOfMoves { get; set; }
         public int movesLeft { get; set; }
         public bool moving { get; set; }
+        public bool SearchedThisTurn { get; set; }
 
         public Texture2D Texture { get; set; }
         public Point Position { get; set; }
@@ -75,16 +78,74 @@ namespace ZomCide
             PlayerInitial = CharacterName.First();
             numOfMoves = 3;
             movesLeft = numOfMoves;
-            MainHandSlot = new Weapon("Sword of Summoning", 1, 4, false, 0, 1, 3, true);
-            OffHandSlot = new Weapon("Dagger of Danger", 1, 5, false, 0, 4, 6);
-            ActiveWeapon = (Weapon)MainHandSlot;
+            //MainHandSlot = new Weapon("Sword of Summoning", 1, 4, false, 0, 1, 3, true);
+            //OffHandSlot = new Weapon("Dagger of Danger", 1, 5, false, 0, 4, 6);
+            //ActiveWeapon = (Weapon)MainHandSlot;
             Size = new Point(40, 40);
             Texture = PlayerIcon;
+            SearchedThisTurn = false;
         }
 
         public static void Initialize(Zombicide game,char initial)
         {
             PlayerIcon = game.Content.Load<Texture2D>(@"playerIcons/" + initial);
+            EmptyHand = game.Content.Load<Texture2D>(@"EmptyHand");
+            EmptyArmor = game.Content.Load<Texture2D>("ArmorSlot");
+        }
+
+        public List<Item> Search()
+        {
+            if (SearchedThisTurn) { return null; }
+            //Check to see if the player is in a room or if there are zombies present
+            if (MainGameScreen.tileData.Where(x=>x.row == PlayerTile.row&& x.column == PlayerTile.column).First().room == false || Zombie.zombieList.Where(x=> x.ZombieTile[0] == PlayerTile.row).Where(x => x.ZombieTile[1] == PlayerTile.column).Count() >0) { return null; }
+            int draws = 1;
+
+            //Check for torch
+            if (MainHandSlot != null)
+            {
+                if (MainHandSlot.Name == "Torch")
+                {
+                    draws++;
+                }
+            }
+            if (OffHandSlot != null)
+            {
+
+                if (OffHandSlot.Name == "Torch")
+                {
+                    draws++;
+                }
+            }
+
+            //Randomly draw Items
+            List<Item> Searchlist = new List<Item>();
+            for (int i = 1; i <= draws; i++)
+            {
+                var undrawn = Item.ItemList.Where(x => x.drawn == false);
+                if (undrawn.Count() == 0)
+                {
+                    foreach (Item I in Item.ItemList)
+                    {
+                        I.drawn = false;
+                    }
+                    undrawn = Item.ItemList.Where(x => x.drawn == false);
+                }
+                Item draw = undrawn.ElementAt(MainGameScreen.RNG.Next(0, undrawn.Count()));
+                draw.drawn = true;
+                Searchlist.Add(draw);
+            }
+            SearchedThisTurn = true;
+            movesLeft--;
+            return Searchlist;
+        }
+
+        public void SetActiveWeapon(Weapon w)
+        {
+            if (w != null)
+            {
+                ActiveWeapon = w;
+                w.Active = true;
+            }
         }
 
         private void LoadCharacter(string CharacterSelection)
@@ -139,6 +200,7 @@ namespace ZomCide
         {
             movesLeft = numOfMoves;
             moves.Text = "Moves Left: " + (movesLeft).ToString();
+            SearchedThisTurn = false;
         }
 
         //public void breakDoor(Tile T, string side, Map map)
@@ -181,7 +243,7 @@ namespace ZomCide
             }
             else { moving = false; }
 
-            ActiveWeapon = (((Weapon)OffHandSlot).Active) ? (Weapon)OffHandSlot : (Weapon)MainHandSlot;
+            ActiveWeapon = (((Weapon)MainHandSlot).Active) ? (Weapon)MainHandSlot : (Weapon)OffHandSlot;
         }
 
         public void Draw(Zombicide game)

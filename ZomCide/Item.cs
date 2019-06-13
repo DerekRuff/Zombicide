@@ -5,14 +5,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.IO;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ZomCide
 {
-    public class Item
+    public class Item : IDrawableGameObject
     {
+        public Item()
+        { }
+
+        public Item(Zombicide game, XmlNode I)
+        {
+            Texture = game.Content.Load<Texture2D>(@"Items\" + I.FirstChild.InnerText.Replace(' ','_'));
+            Size = new Point(160, 250);
+            drawn = false;
+        }
 
         public static List<Item> ItemList { get; set; }
         public static List<Weapon> StarterList { get; private set; }
+
+        public bool drawn;
+
+
         public string Name { get; protected set; }
         /// <summary>
         /// Indicates that this item is a consumable that should be removed from the player
@@ -39,7 +54,13 @@ namespace ZomCide
         /// </summary>
         public int ActionCost { get; private set; }
 
-        public static void Initialize()
+        public Texture2D Texture { get; set; }
+
+        public Point Position => throw new NotImplementedException();
+
+        public Point Size { get; set; }
+
+        public static void Initialize(Zombicide game)
         {
             ItemList = new List<Item>();
             StarterList = new List<Weapon>();
@@ -54,7 +75,7 @@ namespace ZomCide
                 {
                     
                     case ("Weapon"):
-                        item = new Weapon(I);
+                        item = new Weapon(game, I);
                         if (Boolean.Parse(I.ChildNodes.Item(1).InnerText) == true)
                         { StarterList.Add(item); }
                         else
@@ -68,6 +89,14 @@ namespace ZomCide
 
         }
 
+        public void Draw(Zombicide game)
+        {
+            throw new NotImplementedException();
+        }
 
+        public void Update(Zombicide game)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

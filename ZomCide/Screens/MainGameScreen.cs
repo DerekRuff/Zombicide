@@ -48,8 +48,9 @@ namespace ZomCide
         public Paragraph level { get; set; }
         public Paragraph experience { get; set; }
         public Button forfeitMove { get; set; }
-        public Paragraph MainHand { get; set; }
-        public Paragraph OffHand { get; set; }
+        public Image MainHand { get; set; }
+        public Image OffHand { get; set; }
+        public Image ArmorSlot { get; set; }
         public Paragraph BlueSkill { get; set; }
         public Paragraph YellowSkill { get; set; }
         public Paragraph OrangeSkill1 { get; set; }
@@ -61,6 +62,7 @@ namespace ZomCide
         public bool EndGameFlag { get; set; }
         public bool PopupFlag { get; set; }
         public bool LastPopupFlag { get; set; }
+
 
         public MainGameScreen(Zombicide game)
         {
@@ -84,11 +86,13 @@ namespace ZomCide
             experience.Text = ("Experience: " + (game.ActiveCharacter.Experience).ToString());
             var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
             MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: " + mainWeap.Dice + "\nHit Value: " + mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange + "-" + mainWeap.MaxRange;
-            MainHand.Text = ("Main Hand: " + mainWeap.Name);
-            MainHand.FillColor = (mainWeap.Active) ? Color.Red : Color.White;
-            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
-            OffHand.Text = ("Off Hand: " + OffHandName);
-            OffHand.FillColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
+            MainHand.OutlineColor = (mainWeap.Active) ? Color.Red : Color.White;
+            var OffHandName = (game.ActiveCharacter.OffHandSlot != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
+            if (game.ActiveCharacter.OffHandSlot != null)
+            {
+                OffHand.OutlineColor = (((Weapon)game.ActiveCharacter.OffHandSlot).Active) ? Color.Red : Color.White;
+            }
+            else { OffHand.FillColor = Color.White; }
 
             //Check endgame conditions
             if (EndGameFlag == false)
@@ -116,6 +120,8 @@ namespace ZomCide
                 {
                     MouseClicked(game, 2);
                 }
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) && whosTurn == MoveState.PlayerTurn) { SearchPopup(); }
+
             }
             LastPopupFlag = PopupFlag;
 
@@ -163,6 +169,67 @@ namespace ZomCide
                 whosTurn = MoveState.PlayerTurn;
                 game.ActiveCharacter.resetMoves(moves);
             }
+        }
+
+        private void SearchPopup()
+        {
+            PopupFlag = true;
+            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Search?", "Do you want to search this tile for one action?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {
+                                    List<Item> items = game.ActiveCharacter.Search();
+                                    if (items!= null)
+                                    {
+                                        FoundItemsPopup(true, items);
+                                    }
+                                    else { FoundItemsPopup(false, items); }
+                                    PopupFlag = false;
+                                    return true;
+                                }),
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
+                                    PopupFlag = false;
+                                    return true;
+                                }) });
+        }
+
+        private void FoundItemsPopup(bool found, List<Item> items)
+        {
+            PopupFlag = true;
+            Panel itemsPanel = new Panel(new Vector2(400, 450), PanelSkin.Simple, Anchor.Center);
+            var hitText = new Header("", Anchor.TopCenter);
+            var okButton = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
+
+            if (found)
+            {
+                hitText.Text = "Found " + items.Count + " Items";
+                
+                foreach (Item I in items)
+                {
+                    itemsPanel.AddChild(new Image(I.Texture, new Vector2(I.Size.X, I.Size.Y), ImageDrawMode.Stretch, Anchor.AutoInline,new Vector2(0,50)));
+                }
+                
+                okButton.OnClick = (Entity btn) =>
+                {
+                    PopupFlag = false;
+                    LastPopupFlag = true;
+                    UserInterface.Active.RemoveEntity(itemsPanel);
+                    itemsPanel.Dispose();
+                };
+            }
+            else
+            {
+                hitText.Text = "Cant Search Here";
+                okButton.OnClick = (Entity btn) =>
+                {
+                    PopupFlag = false;
+                    LastPopupFlag = true;
+                    UserInterface.Active.RemoveEntity(itemsPanel);
+                    itemsPanel.Dispose();
+                };
+            }
+            itemsPanel.AddChild(hitText);
+            itemsPanel.AddChild(okButton);
+            UserInterface.Active.AddEntity(itemsPanel);
+
         }
 
         public override void Draw(Zombicide game)
@@ -231,7 +298,7 @@ namespace ZomCide
 
             //read in Start tile from map data and place player there
             var startTile = map.Layers[0].Properties.Where(x => x.Key == "StartTile").FirstOrDefault().Value.Split(',');
-            game.ActiveCharacter.Move(startTile,true);
+            game.ActiveCharacter.Move(startTile, true);
 
             //Load Zombie Spawns
             Zombie.SpawnTiles = map.Layers[0].Properties.Where(x => x.Key.StartsWith("SpawnZone")).Select(x => x.Value.Split(',').Select(y => Convert.ToInt32(y)).ToArray()).ToList();
@@ -249,23 +316,28 @@ namespace ZomCide
             movePanel.AddChild(RightTabs);
 
             TabData EquipmentTab = RightTabs.AddTab("Equipment");
-            MainHand = new Paragraph("Main Hand: " + game.ActiveCharacter.MainHandSlot.Name);
+            Item MH = game.ActiveCharacter.MainHandSlot;
+            MainHand = new Image(MH.Texture, new Vector2(MH.Size.X, MH.Size.Y), anchor: Anchor.TopLeft);
+            MainHand.OutlineWidth = 3;
             var mainWeap = (Weapon)game.ActiveCharacter.MainHandSlot;
             MainHand.ToolTipText = "Damage: " + mainWeap.Damage + "\nDice: " + mainWeap.Dice + "\nHit Value: " + mainWeap.DiceThreshold + "\nRange: " + mainWeap.MinRange + "-" + mainWeap.MaxRange;
             MainHand.OnClick = (Entity pgh) =>
             {
-                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = true;
-                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = false;
+                game.ActiveCharacter.SetActiveWeapon((Weapon)game.ActiveCharacter.MainHandSlot);
             };
-            var OffHandName = (game.ActiveCharacter.OffHandSlot.Name != null) ? game.ActiveCharacter.OffHandSlot.Name : "None";
-            OffHand = new Paragraph("Off Hand: " + OffHandName);
-            var offWeap = (Weapon)game.ActiveCharacter.OffHandSlot;
-            OffHand.ToolTipText = "Damage: " + offWeap.Damage + "\nDice: " + offWeap.Dice + "\nHit Value: " + offWeap.DiceThreshold + "\nRange: " + offWeap.MinRange + "-" + offWeap.MaxRange;
+            OffHand = new Image(Character.EmptyHand, new Vector2(MH.Size.X, MH.Size.Y), anchor: Anchor.TopRight);
+            OffHand.OutlineWidth = 3;
+            OffHand.OutlineColor = Color.White;
             OffHand.OnClick = (Entity pgh) =>
             {
-                ((Weapon)game.ActiveCharacter.OffHandSlot).Active = true;
-                ((Weapon)game.ActiveCharacter.MainHandSlot).Active = false;
+                if (game.ActiveCharacter.OffHandSlot != null)
+                {
+                    game.ActiveCharacter.SetActiveWeapon((Weapon)game.ActiveCharacter.OffHandSlot);
+                }
             };
+            ArmorSlot = new Image(Character.EmptyArmor, new Vector2(MH.Size.X, MH.Size.Y), anchor: Anchor.AutoCenter, offset: new Vector2(0, 50));
+            ArmorSlot.OutlineWidth = 3;
+            ArmorSlot.OutlineColor = Color.White;
             EquipmentTab.button.Padding = new Vector2(0, 0);
             EquipmentTab.button.Size = new Vector2(100, 50);
             EquipmentTab.button.Offset = new Vector2(0, -50);
@@ -273,6 +345,7 @@ namespace ZomCide
             EquipmentTab.button.ButtonParagraph.Scale = .9f;
             EquipmentTab.panel.AddChild(MainHand);
             EquipmentTab.panel.AddChild(OffHand);
+            EquipmentTab.panel.AddChild(ArmorSlot);
 
             TabData SkillTab = RightTabs.AddTab("Skills");
             BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, Color.DeepSkyBlue);

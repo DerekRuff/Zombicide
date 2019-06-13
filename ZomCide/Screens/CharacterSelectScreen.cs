@@ -17,10 +17,11 @@ namespace ZomCide
     public class CharacterSelectScreen : GameScreen
     {
         public Character SelectedCharacter { get; private set; }
+        private int weaponIndex;
 
         public CharacterSelectScreen(Zombicide game)
         {
-            Item.Initialize();
+            Item.Initialize(game);
             LoadCharSelection(game);
         }
 
@@ -30,6 +31,13 @@ namespace ZomCide
 
         public override void Draw(Zombicide game)
         {
+        }
+
+        public int LimitToRange(int value, int inclusiveMinimum, int inclusiveMaximum)
+        {
+            if (value < inclusiveMinimum) { return inclusiveMinimum; }
+            if (value > inclusiveMaximum) { return inclusiveMaximum; }
+            return value;
         }
 
         void LoadCharSelection(Zombicide game)
@@ -91,7 +99,7 @@ namespace ZomCide
             //Set events
             ConfirmBut.OnClick = (Entity btn) =>
             {
-                Character.Initialize(game,list.SelectedValue.First());
+                Character.Initialize(game, list.SelectedValue.First());
                 SelectedCharacter = new Character(list.SelectedValue, bs.Text, ys.Text, os1.Text, os2.Text, rs1.Text, rs2.Text, rs3.Text, ArmAlt.Text);
                 StarterPopup(game);
             };
@@ -131,7 +139,7 @@ namespace ZomCide
                 string fileName = name + ".jpg";
                 var imgPath = Path.Combine(baseDir, @"Data\", fileName);
                 FileStream imgFile = File.OpenRead(imgPath);
-                img.Texture = Texture2D.FromStream(game.GraphicsDevice, imgFile); 
+                img.Texture = Texture2D.FromStream(game.GraphicsDevice, imgFile);
             };
         }
 
@@ -151,22 +159,43 @@ namespace ZomCide
             Panel StarterPopup = new Panel(new Vector2(600, 700), PanelSkin.Default, Anchor.Center);
             var header = new Header("Select Starter Weapon", Anchor.TopCenter);
 
-            string fileName = Item.StarterList.First().Name.Replace(' ', '_');
-            Texture2D item =  game.Content.Load<Texture2D>(@"Items\"+fileName);
+            List<Texture2D> starterTextures = new List<Texture2D>();
+            foreach (Item I in Item.StarterList)
+            {
+                string fileName = I.Name.Replace(' ', '_');
+                Texture2D item = game.Content.Load<Texture2D>(@"Items\" + fileName);
+                starterTextures.Add(item);
+            }
 
-            Image wpnImage = new Image(item,new Vector2(350,500),anchor:Anchor.AutoCenter);
+
+            Image wpnImage = new Image(starterTextures.First(), new Vector2(350, 500), anchor: Anchor.AutoCenter);
+            weaponIndex = 0;
 
             var leftButton = new Button("", ButtonSkin.Default, Anchor.CenterLeft, new Vector2(50, 50));
             leftButton.Padding = new Vector2(0, 0);
             leftButton.AddChild(new Paragraph("<", Anchor.Center));
+            leftButton.OnClick = (Entity btn) =>
+            {
+                weaponIndex = LimitToRange(weaponIndex - 1,0,3);
+                
+                wpnImage.Texture = starterTextures.ElementAt(weaponIndex);
+            };
             
             var rightButton = new Button("", ButtonSkin.Default, Anchor.CenterRight, new Vector2(50, 50));
             rightButton.Padding = new Vector2(0, 0);
             rightButton.AddChild(new Paragraph(">", Anchor.Center));
+            rightButton.OnClick = (Entity btn) =>
+            {
+                weaponIndex = LimitToRange(weaponIndex + 1, 0, 3);
+                wpnImage.Texture = starterTextures.ElementAt(weaponIndex);
+            };
 
             var button = new Button("OK", ButtonSkin.Default, Anchor.BottomCenter, new Vector2(300, 50));
             button.OnClick = (Entity btn) =>
             {
+                SelectedCharacter.MainHandSlot = (Weapon)Item.StarterList.Where(x => wpnImage.TextureName.Replace('_', ' ').Contains(x.Name)).First();
+                SelectedCharacter.ActiveWeapon = (Weapon)SelectedCharacter.MainHandSlot;
+                SelectedCharacter.ActiveWeapon.Active = true;
                 UserInterface.Active.Clear();
                 game.SetNextScreen(nameof(MainGameScreen));
             };
@@ -178,8 +207,10 @@ namespace ZomCide
             StarterPopup.AddChild(rightButton);
             StarterPopup.AddChild(button);
             UserInterface.Active.AddEntity(StarterPopup);
-            
+
         }
+
+        
 
     }
 }
