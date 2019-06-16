@@ -41,6 +41,7 @@ namespace ZomCide
         public Texture2D Texture { get; set; }
         public Point Position { get; set; }
         public Point Size { get; set; }
+        public int animationOffset { get; private set; }
 
         public Item MainHandSlot;
         public Item OffHandSlot;
@@ -84,6 +85,7 @@ namespace ZomCide
             Size = new Point(40, 40);
             Texture = PlayerIcon;
             SearchedThisTurn = false;
+            animationOffset = 0;
         }
 
         public static void Initialize(Zombicide game,char initial)
@@ -234,14 +236,19 @@ namespace ZomCide
         public void Update(Zombicide game)
         {
             //This handles move animation
-            if (Position != new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)))
+            if (moving == true)
             {
-                moving = true;
-                int Ydir = PlayerTile.row - LastTile.row;
-                int Xdir = PlayerTile.column - LastTile.column;
-                Position = new Point(Position.X + Xdir, Position.Y + Ydir);
+                if (Position != new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)))
+                {
+                    animationOffset++;
+                    int Ydir = PlayerTile.row - LastTile.row;
+                    int Xdir = PlayerTile.column - LastTile.column;
+                    Position = new Point((MainGameScreen.mapX + (Convert.ToInt32(LastTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2)) + (animationOffset * Xdir), (MainGameScreen.mapY + (Convert.ToInt32(LastTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)) + (animationOffset * Ydir));
+                }
+                else { moving = false; animationOffset = 0; }
+
             }
-            else { moving = false; }
+            else { Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)); }
 
             ActiveWeapon = (((Weapon)MainHandSlot).Active) ? (Weapon)MainHandSlot : (Weapon)OffHandSlot;
         }
@@ -290,6 +297,7 @@ namespace ZomCide
             }
             else if (CheckCanMove(out int extra))
             {
+                moving = true;
                 LastTile.row = PlayerTile.row;
                 LastTile.column = PlayerTile.column;
                 PlayerTile.row = Convert.ToInt32(tile[0]);

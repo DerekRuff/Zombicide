@@ -24,7 +24,7 @@ namespace ZomCide
         public Texture2D Texture { get; set; }
         public Point Size { get; set; }
         public Point Position { get; set; }
-
+        public int animationOffset { get; private set; }
 
         List<Tile> solutionPath;
         List<Tile> visitedTiles;
@@ -51,6 +51,7 @@ namespace ZomCide
 
         public void move(List<Tile> tileData, Character active)
         {
+            
             LastTile[0] = ZombieTile[0];
             LastTile[1] = ZombieTile[1];
             solutionPath = new List<Tile>();
@@ -69,6 +70,7 @@ namespace ZomCide
                 ZombieTile[0] = solutions.First()[0].row;
                 ZombieTile[1] = solutions.First()[0].column;
             }
+            Moving = true;
         }
 
 
@@ -129,14 +131,19 @@ namespace ZomCide
 
         public void Update(Zombicide game)
         {
-            if (Position != new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight))
+            if (Moving == true)
             {
-                Moving = true;
-                int Ydir = ZombieTile[0] - LastTile[0];
-                int Xdir = ZombieTile[1] - LastTile[1];
-                Position = new Point(Position.X + Xdir, Position.Y + Ydir);
+                if (!new Rectangle(new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight), new Point(15, 15)).Contains(Position))
+                {
+                    animationOffset++;
+                    int Ydir = ZombieTile[0] - LastTile[0];
+                    int Xdir = ZombieTile[1] - LastTile[1];
+                    Position = new Point((MainGameScreen.mapX + LastTile[1] * MainGameScreen.tileWidth) + (animationOffset * Xdir), (MainGameScreen.mapY + LastTile[0] * MainGameScreen.tileHeight) + (animationOffset * Ydir));
+                }
+                else { Moving = false; animationOffset = 0; }
+
             }
-            else { Moving = false; }
+            else { Position = new Point(MainGameScreen.mapX + ZombieTile[1] * MainGameScreen.tileWidth, MainGameScreen.mapY + ZombieTile[0] * MainGameScreen.tileHeight); }
         }
 
         public void Draw(Zombicide game)
