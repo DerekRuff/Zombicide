@@ -76,6 +76,7 @@ namespace ZomCide
         /// </summary>
         protected override void LoadContent()
         {
+            
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             CurrentScreen = new StartScreen(this);
             mouseCursor = Content.Load<Texture2D>("GeonBit.UI/themes/hd/textures/cursor_default");
@@ -121,6 +122,7 @@ namespace ZomCide
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             SpriteBatch.Begin();

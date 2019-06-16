@@ -43,17 +43,17 @@ namespace ZomCide
         public Point Size { get; set; }
         public int animationOffset { get; private set; }
 
-        public Item MainHandSlot;
-        public Item OffHandSlot;
-        public Item ArmorSlot;
-        public Weapon ActiveWeapon;
+        public Item MainHandSlot { get; set; }
+        public Item OffHandSlot { get; set; }
+        public Item ArmorSlot { get; set; }
+        public Weapon ActiveWeapon { get; set; }
 
-        List<Item> Backpack;
+        public List<Item> Backpack { get; set; }
 
-        public Skill BlueSkill;
-        public Skill YellowSkill;
-        public List<Skill> OrangeSkills;
-        public List<Skill> RedSkills;
+        public Skill BlueSkill { get; set; }
+        public Skill YellowSkill { get; set; }
+        public List<Skill> OrangeSkills { get; set; }
+        public List<Skill> RedSkills { get; set; }
 
 
         public Character(string CharacterSelection, string bs, string ys, string os1, string os2, string rs1, string rs2, string rs3, string Aalt)
@@ -138,15 +138,50 @@ namespace ZomCide
             }
             SearchedThisTurn = true;
             movesLeft--;
+            
+            Backpack.AddRange(Searchlist);
             return Searchlist;
         }
 
-        public void SetActiveWeapon(Weapon w)
+        public void SetActiveWeapon(string slot)
         {
-            if (w != null)
+            Item active = null;
+            Item inactive1 = null;
+            Item inactive2 = null;
+            switch (slot) {
+                case "MAIN":
+                    active = MainHandSlot;
+                    inactive1 = OffHandSlot;
+                    inactive2 = ArmorSlot;
+                    break;
+                case "OFF":
+                    active = OffHandSlot;
+                    inactive1 = MainHandSlot;
+                    inactive2 = ArmorSlot;
+                    break;
+                case "ARMOR":
+                    active = ArmorSlot;
+                    inactive1 = MainHandSlot;
+                    inactive2 = OffHandSlot;
+                    break;
+                default:
+                    break;
+            }
+
+            if (active != null)
             {
-                ActiveWeapon = w;
-                w.Active = true;
+                ActiveWeapon = (Weapon)active;
+                ((Weapon)active).Active = true;
+            }
+            if (inactive1 != null)
+            {
+                
+                ((Weapon)inactive1).Active = false;
+            }
+            if (inactive2 != null)
+            {
+
+                ((Weapon)inactive2).Active = false;
             }
         }
 
