@@ -112,6 +112,7 @@ namespace ZomCide
             }
 
             BackPackTab.panel.ClearChildren();
+            game.ActiveCharacter.Backpack.Remove(null);
             foreach (Item I in game.ActiveCharacter.Backpack)
             {
                 if (I != null)
@@ -122,7 +123,7 @@ namespace ZomCide
                     {
                         moveItemPopup(img);
                     };
-                    
+
                 }
 
             }
@@ -211,11 +212,16 @@ namespace ZomCide
             GeonBit.UI.Utils.MessageBox.ShowMsgBox("Equip Item?", "Where would you like to equip this item?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
                                 new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Main Hand", () => {
                                     Item current = Item.ItemList.Where(x=>x.Texture == img.Texture).FirstOrDefault();
+                                    if (current == null)
+                                    {current = Item.StarterList.Where(x=>x.Texture == img.Texture).FirstOrDefault(); }
                                     if (current is Weapon )
                                     {
-                                        game.ActiveCharacter.Backpack.Remove(current);
+                                        ((Weapon)(game.ActiveCharacter.MainHandSlot)).Active = false;
                                         game.ActiveCharacter.Backpack.Add(game.ActiveCharacter.MainHandSlot);
+                                        game.ActiveCharacter.Backpack.Remove(current);
                                         game.ActiveCharacter.MainHandSlot = current as Weapon;
+                                        
+
                                         return true;
                                     }
                                     else { return false; }
@@ -225,9 +231,19 @@ namespace ZomCide
                                     Item current = Item.ItemList.Where(x=>x.Texture == img.Texture).FirstOrDefault();
                                     if (current is Weapon )
                                     {
-                                        game.ActiveCharacter.Backpack.Remove(current);
+                                        
                                         game.ActiveCharacter.Backpack.Add(game.ActiveCharacter.OffHandSlot);
                                         game.ActiveCharacter.OffHandSlot = current as Weapon;
+                                        var updatedBackpack = new List<Item>();
+
+                                        foreach (Item I in game.ActiveCharacter.Backpack)
+                                        {
+                                            if(I!= current)
+                                            {
+                                                updatedBackpack.Add(I);
+                                            }
+                                        }
+                                        game.ActiveCharacter.Backpack = updatedBackpack;
                                         return true;
                                     }
                                     else { return false; }

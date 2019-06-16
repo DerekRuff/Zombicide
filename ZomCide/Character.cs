@@ -138,7 +138,6 @@ namespace ZomCide
             }
             SearchedThisTurn = true;
             movesLeft--;
-            
             Backpack.AddRange(Searchlist);
             return Searchlist;
         }
@@ -284,6 +283,12 @@ namespace ZomCide
 
             }
             else { Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2)); }
+
+            var equipped = new List<Item>();
+            if (MainHandSlot != null) { equipped.Add(MainHandSlot); }
+            if (OffHandSlot != null) { equipped.Add(OffHandSlot); }
+            if (ArmorSlot != null) { equipped.Add(ArmorSlot); }
+            if (!equipped.Exists(x => ((Weapon)x).Active == true)) { SetActiveWeapon("MAIN"); }
 
             ActiveWeapon = (((Weapon)MainHandSlot).Active) ? (Weapon)MainHandSlot : (Weapon)OffHandSlot;
         }
