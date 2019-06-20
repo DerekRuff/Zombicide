@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TiledSharp;
+using ZomCide.GamePlayers;
 
 namespace ZomCide
 {
@@ -189,7 +190,7 @@ namespace ZomCide
                 {
                     if (game.ActiveCharacter.PlayerTile.row == Z.ZombieTile[0] && game.ActiveCharacter.PlayerTile.column == Z.ZombieTile[1])
                     { Z.attackPlayer(); }
-                    else { Z.move(tileData, game.ActiveCharacter); }
+                    else { Z.Move(tileData, game.ActiveCharacter); }
 
                 }
                 //Spawn new Zombies
@@ -197,12 +198,12 @@ namespace ZomCide
                 {
                     if (RNG.Next(0, 2) == 1)
                     {
-                        Zombie.AddZombie(ST[0], ST[1]);
+                        ZombieFactory.Spawn(game.ActiveCharacter.Level,ST[0], ST[1]);
                     }
                 }
 
                 whosTurn = MoveState.PlayerTurn;
-                game.ActiveCharacter.resetMoves(moves);
+                game.ActiveCharacter.ResetMoves(moves);
             }
         }
 
@@ -437,13 +438,13 @@ namespace ZomCide
             EquipmentTab.panel.AddChild(ArmorSlot);
 
             TabData SkillTab = RightTabs.AddTab("Skills");
-            BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, Color.DeepSkyBlue);
-            YellowSkill = new Paragraph(game.ActiveCharacter.YellowSkill.SkillName, Anchor.Auto, Color.DarkGray);
-            OrangeSkill1 = new Paragraph(game.ActiveCharacter.OrangeSkills.First().SkillName, Anchor.Auto, Color.DarkGray);
-            OrangeSkill2 = new Paragraph(game.ActiveCharacter.OrangeSkills.Last().SkillName, Anchor.Auto, Color.DarkGray);
-            RedSkill1 = new Paragraph(game.ActiveCharacter.RedSkills.First().SkillName, Anchor.Auto, Color.DarkGray);
-            RedSkill2 = new Paragraph(game.ActiveCharacter.RedSkills.ElementAt(1).SkillName, Anchor.Auto, Color.DarkGray);
-            RedSkill3 = new Paragraph(game.ActiveCharacter.RedSkills.Last().SkillName, Anchor.Auto, Color.DarkGray);
+            BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, color:Color.DeepSkyBlue);
+            YellowSkill = new Paragraph(game.ActiveCharacter.YellowSkill.SkillName, Anchor.Auto, color: Color.DarkGray);
+            OrangeSkill1 = new Paragraph(game.ActiveCharacter.OrangeSkills.First().SkillName, Anchor.Auto, color: Color.DarkGray);
+            OrangeSkill2 = new Paragraph(game.ActiveCharacter.OrangeSkills.Last().SkillName, Anchor.Auto, color: Color.DarkGray);
+            RedSkill1 = new Paragraph(game.ActiveCharacter.RedSkills.First().SkillName, Anchor.Auto, color: Color.DarkGray);
+            RedSkill2 = new Paragraph(game.ActiveCharacter.RedSkills.ElementAt(1).SkillName, Anchor.Auto, color: Color.DarkGray);
+            RedSkill3 = new Paragraph(game.ActiveCharacter.RedSkills.Last().SkillName, Anchor.Auto, color: Color.DarkGray);
             SkillTab.panel.AddChild(BlueSkill);
             SkillTab.panel.AddChild(YellowSkill);
             SkillTab.panel.AddChild(OrangeSkill1);

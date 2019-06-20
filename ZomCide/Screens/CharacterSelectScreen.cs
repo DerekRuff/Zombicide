@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using ZomCide.GamePlayers;
 
 // using GeonBit UI elements
 using GeonBit.UI;
