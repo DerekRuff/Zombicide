@@ -329,19 +329,15 @@ namespace ZomCide.GamePlayers
         {
             if (firstPlacement)
             {
-                PlayerTile.row = Convert.ToInt32(tile[0]);
-                PlayerTile.column = Convert.ToInt32(tile[1]);
-                LastTile.row = PlayerTile.row;
-                LastTile.column = PlayerTile.column;
+                PlayerTile = MainGameScreen.tileData.Where(x => x.row == Convert.ToInt32(tile[0]) && x.column == Convert.ToInt32(tile[1])).First();
+                LastTile = PlayerTile;
                 Position = new Point(MainGameScreen.mapX + (Convert.ToInt32(PlayerTile.column) * MainGameScreen.tileWidth) + (MainGameScreen.tileWidth / 2) - (Size.X / 2), MainGameScreen.mapY + (Convert.ToInt32(PlayerTile.row) * MainGameScreen.tileHeight) + (MainGameScreen.tileHeight / 2) - (Size.Y / 2));
             }
             else if (CheckCanMove(out int extra))
             {
                 moving = true;
-                LastTile.row = PlayerTile.row;
-                LastTile.column = PlayerTile.column;
-                PlayerTile.row = Convert.ToInt32(tile[0]);
-                PlayerTile.column = Convert.ToInt32(tile[1]);
+                LastTile = PlayerTile;
+                PlayerTile = MainGameScreen.tileData.Where(x => x.row == Convert.ToInt32(tile[0]) && x.column == Convert.ToInt32(tile[1])).First();
                 movesLeft = movesLeft - extra - 1;
             }
             

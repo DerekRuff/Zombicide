@@ -73,5 +73,16 @@ namespace ZomCide.GamePlayers
             }
         }
 
+        internal static void SpawnInRooms(Tile t, string side, SkillLevel level)
+        {
+            int row = t.row;
+            int column = t.column;
+            if (side == "top") { row--; }
+            if (side == "bottom") { row++; }
+            if (side == "left") { column--; }
+            if (side == "right") { column++; }
+            Spawn(level, row, column);
+
+        }
     }
 }

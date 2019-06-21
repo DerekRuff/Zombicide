@@ -198,7 +198,7 @@ namespace ZomCide
                 {
                     if (RNG.Next(0, 2) == 1)
                     {
-                        ZombieFactory.Spawn(game.ActiveCharacter.Level,ST[0], ST[1]);
+                        ZombieFactory.Spawn(game.ActiveCharacter.Level, ST[0], ST[1]);
                     }
                 }
 
@@ -221,7 +221,7 @@ namespace ZomCide
                                         game.ActiveCharacter.Backpack.Add(game.ActiveCharacter.MainHandSlot);
                                         game.ActiveCharacter.Backpack.Remove(current);
                                         game.ActiveCharacter.MainHandSlot = current as Weapon;
-                                        
+
 
                                         return true;
                                     }
@@ -232,7 +232,7 @@ namespace ZomCide
                                     Item current = Item.ItemList.Where(x=>x.Texture == img.Texture).FirstOrDefault();
                                     if (current is Weapon )
                                     {
-                                        
+
                                         game.ActiveCharacter.Backpack.Add(game.ActiveCharacter.OffHandSlot);
                                         game.ActiveCharacter.OffHandSlot = current as Weapon;
                                         var updatedBackpack = new List<Item>();
@@ -340,9 +340,9 @@ namespace ZomCide
             foreach (Tile T in tileData)
             {
                 if (T.LeftSide == RoomSide.closeddoor) { game.SpriteBatch.Draw(closedDoor, new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50), Color.White); }
-                if (T.LeftSide == RoomSide.opendoor) { game.SpriteBatch.Draw(openDoor, new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50), Color.White); }
+                if (T.RighSide == RoomSide.opendoor) { game.SpriteBatch.Draw(openDoor, new Rectangle(mapX + ((T.column + 1) * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50), Color.White); }
                 if (T.TopSide == RoomSide.closeddoor) { game.SpriteBatch.Draw(closedDoor, new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50), Color.White); }
-                if (T.TopSide == RoomSide.opendoor) { game.SpriteBatch.Draw(openDoor, new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50), Color.White); }
+                if (T.BottomSide == RoomSide.opendoor) { game.SpriteBatch.Draw(openDoor, new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + ((T.row + 1) * tileHeight) - 25, 50, 50), Color.White); }
 
             }
             foreach (Zombie Z in Zombie.zombieList)
@@ -438,7 +438,7 @@ namespace ZomCide
             EquipmentTab.panel.AddChild(ArmorSlot);
 
             TabData SkillTab = RightTabs.AddTab("Skills");
-            BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, color:Color.DeepSkyBlue);
+            BlueSkill = new Paragraph(game.ActiveCharacter.BlueSkill.SkillName, Anchor.Auto, color: Color.DeepSkyBlue);
             YellowSkill = new Paragraph(game.ActiveCharacter.YellowSkill.SkillName, Anchor.Auto, color: Color.DarkGray);
             OrangeSkill1 = new Paragraph(game.ActiveCharacter.OrangeSkills.First().SkillName, Anchor.Auto, color: Color.DarkGray);
             OrangeSkill2 = new Paragraph(game.ActiveCharacter.OrangeSkills.Last().SkillName, Anchor.Auto, color: Color.DarkGray);
@@ -546,24 +546,64 @@ namespace ZomCide
             { litTiles.Add(tileData.Find(x => x.row == curLocation.row + 1 && x.column == curLocation.column)); }
         }
 
-        void breakDoor(Zombicide game, Tile T, string side)
+        void BreakDoor(Zombicide game, Tile T, string side)
         {
-            if (side == "left")
+            bool success = false;
+            if (game.ActiveCharacter.ActiveWeapon.DoorStatus == DoorOpener.True)
             {
-                T.LeftSide = RoomSide.opendoor;
-                var neighborTile = tileData.Find(x => x.row == T.row && x.column == T.column - 1);
-                neighborTile.RighSide = RoomSide.opendoor;
+                //Roll Dice
+                success = true;
+            }
+            else if (game.ActiveCharacter.ActiveWeapon.DoorStatus == DoorOpener.Auto)
+            {
+                //Roll Dice
+                success = true;
+            }
+            else
+            {
+                PopupFlag = true;
+                GeonBit.UI.Utils.MessageBox.ShowMsgBox("Item Cannot Open Doors", "Please Equip An Item That Can Open Doors.", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("OK", () => {
+                                        return true;
+                                })
+            });
+                PopupFlag = false;
+            }
+            if (success)
+            {
+                if (side == "left")
+                {
+                    T.LeftSide = RoomSide.opendoor;
+                    var neighborTile = tileData.Find(x => x.row == T.row && x.column == T.column - 1);
+                    neighborTile.RighSide = RoomSide.opendoor;
 
+                }
+                else if (side == "top")
+                {
+                    T.TopSide = RoomSide.opendoor;
+                    var neighborTile = tileData.Find(x => x.row == T.row - 1 && x.column == T.column);
+                    neighborTile.BottomSide = RoomSide.opendoor;
+                }
+                if (side == "right")
+                {
+                    T.RighSide = RoomSide.opendoor;
+                    var neighborTile = tileData.Find(x => x.row == T.row && x.column == T.column + 1);
+                    neighborTile.LeftSide = RoomSide.opendoor;
+
+                }
+                else if (side == "bottom")
+                {
+                    T.BottomSide = RoomSide.opendoor;
+                    var neighborTile = tileData.Find(x => x.row == T.row + 1 && x.column == T.column);
+                    neighborTile.TopSide = RoomSide.opendoor;
+                }
+                applyMoveTiles(game);
+                game.ActiveCharacter.movesLeft--;
+                //Make function that finds all connnected tiles in a room, this will help with spawning zombies too... 
+                //if (findallconnectingtiles.where(x => x.topside==open ||left||right||bottom).count <=1) to check if this is the first time youve opened the room
+                ZombieFactory.SpawnInRooms(T,side,game.ActiveCharacter.Level);
+                if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
             }
-            else if (side == "top")
-            {
-                T.TopSide = RoomSide.opendoor;
-                var neighborTile = tileData.Find(x => x.row == T.row - 1 && x.column == T.column);
-                neighborTile.BottomSide = RoomSide.opendoor;
-            }
-            applyMoveTiles(game);
-            game.ActiveCharacter.movesLeft--;
-            if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
         }
 
 
@@ -634,42 +674,50 @@ namespace ZomCide
 
                 if (whosTurn == MoveState.PlayerTurn)
                 {
+                    Tile T = game.ActiveCharacter.PlayerTile;
+                    Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
+                    Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
+                    Rectangle rightdoorRect = new Rectangle(mapX + ((T.column + 1) * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
+                    Rectangle bottomdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + ((T.row + 1) * tileHeight) - 25, 50, 50);
 
-
-
-                    foreach (Tile T in doorTiles)
+                    bool doorClicked = false;
+                    string doorSide = "";
+                    if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor)
                     {
-                        Rectangle leftdoorRect = new Rectangle(mapX + (T.column * tileWidth) - 25, mapY + (T.row * tileHeight) + (tileHeight / 2) - 25, 50, 50);
-                        Rectangle topdoorRect = new Rectangle(mapX + (T.column * tileWidth) + (tileWidth / 2) - 25, mapY + (T.row * tileHeight) - 25, 50, 50);
-                        if (mouseClickRect.Intersects(leftdoorRect) && T.LeftSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                        {
-                            PopupFlag = true;
-                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"left");
-                                    PopupFlag = false;
-                                    return true;
-                                }),
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
-                                    PopupFlag = false;
-                                    return true;
-                                }) });
-                            return;
-                        }
-                        else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor && Math.Abs(T.row - game.ActiveCharacter.PlayerTile.row) <= 1 && Math.Abs(T.column - game.ActiveCharacter.PlayerTile.column) <= 1)
-                        {
-                            PopupFlag = true;
-                            GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {breakDoor(game, T,"top");
-                                    PopupFlag = false;
-                                    return true;
-                                }),
-                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
-                                    PopupFlag = false;
-                                    return true;
-                                }) });
-                            return;
-                        }
+                        doorClicked = true;
+                        doorSide = "left";
                     }
+                    else if (mouseClickRect.Intersects(topdoorRect) && T.TopSide == RoomSide.closeddoor)
+                    {
+                        doorClicked = true;
+                        doorSide = "top";
+                    }
+                    else if (mouseClickRect.Intersects(rightdoorRect) && T.RighSide == RoomSide.closeddoor)
+                    {
+                        doorClicked = true;
+                        doorSide = "right";
+                    }
+                    else if (mouseClickRect.Intersects(bottomdoorRect) && T.BottomSide == RoomSide.closeddoor)
+                    {
+                        doorClicked = true;
+                        doorSide = "bottom";
+                    }
+
+                    if (doorClicked)
+                    {
+                        PopupFlag = true;
+                        GeonBit.UI.Utils.MessageBox.ShowMsgBox("Locked Door", "Break Down Door?", new GeonBit.UI.Utils.MessageBox.MsgBoxOption[] {
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("Yes", () => {BreakDoor(game, T,doorSide);
+                                    PopupFlag = false;
+                                    return true;
+                                }),
+                                new GeonBit.UI.Utils.MessageBox.MsgBoxOption("no", () => {
+                                    PopupFlag = false;
+                                    return true;
+                                }) });
+                        return;
+                    }
+
                     foreach (Objective O in Objective.ObjectiveList)
                     {
                         if (mouseClickRect.Intersects(O.Area) && O.flipped == false && game.ActiveCharacter.PlayerTile.row == O.Tile[0] && game.ActiveCharacter.PlayerTile.column == O.Tile[1])
@@ -678,12 +726,12 @@ namespace ZomCide
                             return;
                         }
                     }
-                    foreach (Tile T in litTiles)
+                    foreach (Tile L in litTiles)
                     {
-                        Rectangle tileRect = new Rectangle(mapX + T.column * tileWidth, mapY + T.row * tileHeight, tileWidth, tileHeight);
+                        Rectangle tileRect = new Rectangle(mapX + L.column * tileWidth, mapY + L.row * tileHeight, tileWidth, tileHeight);
                         if (mouseClickRect.Intersects(tileRect))
                         {
-                            game.ActiveCharacter.Move(new string[] { T.row.ToString(), T.column.ToString() });
+                            game.ActiveCharacter.Move(new string[] { L.row.ToString(), L.column.ToString() });
                             applyMoveTiles(game);
                             if (game.ActiveCharacter.movesLeft == 0) { whosTurn = MoveState.ZombieTurn; }
                             return;
