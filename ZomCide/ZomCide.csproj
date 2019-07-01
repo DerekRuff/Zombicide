@@ -63,7 +63,10 @@
     <Compile Include="DrawableGameObjects\Tile.cs" />
     <Compile Include="DrawableGameObjects\Dice.cs" />
     <Compile Include="DrawableGameObjects\Item.cs" />
-    <Compile Include="Skill.cs" />
+    <Compile Include="Skills\ActiveSkill.cs" />
+    <Compile Include="Skills\PassiveSkill.cs" />
+    <Compile Include="Skills\Passive\ExtraDie.cs" />
+    <Compile Include="Skills\Skill.cs" />
     <Compile Include="DrawableGameObjects\Weapon.cs" />
     <Compile Include="Zombicide.cs" />
     <Compile Include="Program.cs" />
@@ -708,6 +711,9 @@
     <TypeScriptCompile Include="Content\NewFolder1\BP-tile-8V.tsx" />
     <TypeScriptCompile Include="Content\NewFolder1\BP-tile-9R.tsx" />
     <TypeScriptCompile Include="Content\NewFolder1\BP-tile-9V.tsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Skills\Active\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

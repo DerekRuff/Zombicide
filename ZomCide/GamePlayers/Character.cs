@@ -13,6 +13,8 @@ using GeonBit;
 using GeonBit.UI;
 using System.Xml;
 
+using ZomCide.Skills;
+
 namespace ZomCide.GamePlayers
 {
     public class Character : IDrawableGameObject
@@ -55,6 +57,8 @@ namespace ZomCide.GamePlayers
         public List<Skill> OrangeSkills { get; set; }
         public List<Skill> RedSkills { get; set; }
 
+        public List<Skill> ActiveSkills { get; set; }
+
 
         public Character(string CharacterSelection, string bs, string ys, string os1, string os2, string rs1, string rs2, string rs3, string Aalt)
         {
@@ -64,11 +68,12 @@ namespace ZomCide.GamePlayers
             IsAlive = true;
             SuperLevel = 0;
             Level = SkillLevel.Blue;
+            ActiveSkills = new List<Skill>();
             Backpack = new List<Item>();
             OrangeSkills = new List<Skill>();
             RedSkills = new List<Skill>();
             CharacterName = CharacterSelection;
-            BlueSkill = new Skill(bs);
+            BlueSkill = Skill.ParseSkill(bs);
             YellowSkill = new Skill(ys);
             OrangeSkills.Add(new Skill(os1));
             OrangeSkills.Add(new Skill(os2));
@@ -86,6 +91,26 @@ namespace ZomCide.GamePlayers
             Texture = PlayerIcon;
             SearchedThisTurn = false;
             animationOffset = 0;
+            ActivateSkills(SkillLevel.Blue);
+        }
+
+        private void ActivateSkills(SkillLevel lvl)
+        {
+            switch (lvl) {
+                case (SkillLevel.Blue):
+                    if (BlueSkill is PassiveSkill)
+                    {
+                        BlueSkill.Activate(this);
+                        ActiveSkills.Add(BlueSkill);
+                    }
+                    break;
+                case (SkillLevel.Yellow):
+                    break;
+                case (SkillLevel.Orange):
+                    break;
+                case (SkillLevel.Red):
+                    break;
+            }
         }
 
         public static void Initialize(Zombicide game,char initial)
@@ -303,7 +328,15 @@ namespace ZomCide.GamePlayers
             int hits = 0;
             if (CheckCanAttack(game, Z))
             {
-
+                foreach (Skill s in ActiveSkills)
+                {
+                    if (s is Skills.Passive.ExtraDie)
+                    {
+                        Skills.Passive.ExtraDie extradie = (Skills.Passive.ExtraDie)s;
+                        if (ActiveWeapon.Type == extradie.DieType|| extradie.DieType == WeaponType.All)
+                        { Dice.addDice(1); }
+                    }
+                }
                 Dice.addDice(ActiveWeapon.Dice);
                 Dice.Roll();
                 hits = Dice.CalculateHits(ActiveWeapon.DiceThreshold);

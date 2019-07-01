@@ -4,6 +4,7 @@
     {
         Melee,
         Ranged,
-        CombatSpell
+        CombatSpell,
+        All
     };
 }
